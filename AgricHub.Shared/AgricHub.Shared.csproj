@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.9" />
+    <Folder Include="DTO%27s\Request\" />
+    <Folder Include="DTO%27s\Response\" />
   </ItemGroup>
 
 </Project>
