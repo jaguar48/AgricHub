@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AgricHub.DAL\AgricHub.DAL.csproj" />
+    <ProjectReference Include="..\AgricHub.Shared\AgricHub.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
