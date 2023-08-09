@@ -73,11 +73,11 @@ var app = builder.Build();
 
 app.UseCors("CorsPolicy");
 
-app.UseStaticFiles(new StaticFileOptions()
-{
+app.UseStaticFiles();
+/*{
     FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Resources")),
     RequestPath = new PathString("/Resources")
-});
+});*/
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
