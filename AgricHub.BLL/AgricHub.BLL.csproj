@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AgricHub.Contracts\AgricHub.Contracts.csproj" />
     <ProjectReference Include="..\AgricHub.DAL\AgricHub.DAL.csproj" />
     <ProjectReference Include="..\AgricHub.Shared\AgricHub.Shared.csproj" />
   </ItemGroup>

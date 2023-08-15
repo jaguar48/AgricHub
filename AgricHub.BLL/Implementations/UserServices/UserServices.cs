@@ -1,4 +1,4 @@
-﻿using AgricHub.BLL.Interfaces;
+﻿using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.DAL.Entities;
 using AgricHub.Shared.DTO_s.Request;
 using Microsoft.AspNetCore.Identity;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AgricHub.BLL.Implementations
+namespace AgricHub.BLL.Implementations.UserServices
 {
     public sealed class UserServices : IUserServices
     {
@@ -43,7 +43,7 @@ namespace AgricHub.BLL.Implementations
                 UserName = Request.UserName,
                 Email = Request.Email,
                 PhoneNumber = Request.PhoneNumber
-               
+
             };
 
 
@@ -61,6 +61,6 @@ namespace AgricHub.BLL.Implementations
 
         }
 
-       
+
     }
 }

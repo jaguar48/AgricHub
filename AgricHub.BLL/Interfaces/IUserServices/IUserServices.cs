@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AgricHub.BLL.Interfaces
+namespace AgricHub.BLL.Interfaces.IUserServices
 {
     public interface IUserServices
     {
