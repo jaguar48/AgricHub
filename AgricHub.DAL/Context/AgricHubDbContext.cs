@@ -1,4 +1,5 @@
-﻿using AgricHub.DAL.Entities.Models;
+﻿using AgricHub.DAL.Entities;
+using AgricHub.DAL.Entities.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +25,7 @@ namespace AgricHub.DAL.Context
         }
 
 
-        public DbSet<Admin> Admins { get; set; }
+        public DbSet<Consultant> Consultants { get; set; }
 
     }
 }

@@ -1,17 +1,15 @@
-﻿using AgricHub.BLL.Interfaces.IUserServices;
+﻿using AgricHub.BLL.Helpers;
+using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.Contracts;
 using AgricHub.DAL.Entities;
 using AgricHub.DAL.Entities.Models;
+using AgricHub.Shared.DTO_s.Request;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace AgricHub.BLL.Implementations.UserServices.UserServices
 {
-   
+
     public sealed class ConsultantService : IConsultantService
     {
 
@@ -25,48 +23,54 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
         private readonly IRepository<Wallet> _walletRepo;
 
 
-        public SellerServices(IAuthService authService, IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IUserServices userServices)
+        public ConsultantService(IAuthService authService, IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IUserServices userServices)
         {
-            _logger = logger;
+            /*_logger = logger;*/
             _unitOfWork = unitOfWork;
             _userManager = userManager;
             _authService = authService;
             _userServices = userServices;
-            _sellerRepo = _unitOfWork.GetRepository<Seller>();
+            _consultantRepo = _unitOfWork.GetRepository<Consultant>();
             _walletRepo = _unitOfWork.GetRepository<Wallet>();
         }
 
 
-        public async Task<string> RegisterSeller(SellerForRegistrationDto sellerForRegistration)
+        public async Task<string> RegisterConsultant(ConsultantRegistrationRequest request)
         {
-            _logger.LogInfo("Creating the Seller as a user first, before assigning the seller role to them and adding them to the Sellers table.");
+            /* _logger.LogInfo("Creating the Seller as a user first, before assigning the seller role to them and adding them to the Sellers table.");*/
 
-            var user = await _userServices.RegisterUser(new UserForRegistrationDto
+
+
+            var user = await _userServices.RegisterUser(new UserForRegistrationRequest
             {
-                FirstName = sellerForRegistration.FirstName,
-                LastName = sellerForRegistration.LastName,
-                Email = sellerForRegistration.Email,
-                Password = sellerForRegistration.Password,
-                UserName = sellerForRegistration.UserName
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Email = request.Email,
+                Password = request.Password,
+                UserName = request.UserName,
+
+                CountryId = request.CountryId,
+                StateId = request.StateId,
+                LgaId = request.LgaId
             });
 
             await _userManager.AddToRoleAsync(user, "Seller");
 
-            var seller = new Seller
+            var consultant = new Consultant
             {
-                FirstName = sellerForRegistration.FirstName,
-                LastName = sellerForRegistration.LastName,
-                PhoneNumber = sellerForRegistration.PhoneNumber,
-                Email = sellerForRegistration.Email,
-                BusinessName = sellerForRegistration.BusinessName,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                PhoneNumber = request.PhoneNumber,
+                Email = request.Email,
+                BusinessName = request.BusinessName,
                 UserId = user.Id
             };
 
-            await _sellerRepo.AddAsync(seller);
-            await CreateCustomerAccount(seller);
+            await _consultantRepo.AddAsync(consultant);
+            await CreateCustomerAccount(consultant);
 
             var verificationToken = Guid.NewGuid().ToString();
-            var emailSent = await _authService.SendVerificationEmail(sellerForRegistration.Email, verificationToken);
+            var emailSent = await _authService.SendVerificationEmail(request.Email, verificationToken);
 
             if (emailSent)
             {
@@ -88,14 +92,14 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
 
 
 
-        private async Task CreateCustomerAccount(Seller seller)
+        private async Task CreateCustomerAccount(Consultant consultant)
         {
             Wallet wallet = new()
             {
                 WalletNo = WalletIdGenerator.GenerateWalletId(),
                 Balance = 0,
                 IsActive = true,
-                SellerId = seller.Id,
+                ConsultantId = consultant.Id,
             };
             await _walletRepo.AddAsync(wallet);
         }

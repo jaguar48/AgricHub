@@ -17,7 +17,9 @@ namespace AgricHub.DAL.Entities.Models
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string UserId { get; set; }
-
+        public string CountryId { get; set; }
+        public string StateId { get; set; }
+        public string LgaId { get; set; }
         public ApplicationUser User { get; set; }
     }
 }

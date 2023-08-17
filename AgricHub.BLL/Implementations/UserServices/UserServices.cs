@@ -2,15 +2,10 @@
 using AgricHub.DAL.Entities;
 using AgricHub.Shared.DTO_s.Request;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AgricHub.BLL.Implementations.UserServices
 {
-    public sealed class UserServices : IUserServices
+    public sealed class UserService : IUserServices
     {
 
         /*private readonly ILoggerManager _logger;*/
@@ -18,7 +13,7 @@ namespace AgricHub.BLL.Implementations.UserServices
 
 
 
-        public UserServices(UserManager<ApplicationUser> userManager)
+        public UserService(UserManager<ApplicationUser> userManager)
         {
             /*_logger = logger;*/
             _userManager = userManager;
@@ -42,7 +37,10 @@ namespace AgricHub.BLL.Implementations.UserServices
                 LastName = Request.LastName,
                 UserName = Request.UserName,
                 Email = Request.Email,
-                PhoneNumber = Request.PhoneNumber
+                PhoneNumber = Request.PhoneNumber,
+                CountryId = Request.CountryId,
+                StateId = Request.StateId,
+                LgaId = Request.LgaId
 
             };
 
