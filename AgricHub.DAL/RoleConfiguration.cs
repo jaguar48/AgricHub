@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AgricHub.DAL.Entities.Models;
+using AgricHub.DAL.Entities;
 
 namespace AgricHub.DAL
 {

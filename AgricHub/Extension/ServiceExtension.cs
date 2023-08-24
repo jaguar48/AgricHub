@@ -1,10 +1,16 @@
-﻿using AgricHub.DAL.Context;
+﻿using AgricHub.BLL.Helpers;
+using AgricHub.BLL.Implementations.UserServices;
+using AgricHub.BLL.Implementations.UserServices.UserServices;
+using AgricHub.BLL.Interfaces.IUserServices;
+using AgricHub.DAL.Context;
 using AgricHub.DAL.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using SendGrid.Helpers.Mail;
 using System.Text;
 
 namespace AgricHub.API.Extension
@@ -19,6 +25,13 @@ namespace AgricHub.API.Extension
             .AllowAnyMethod()
             .AllowAnyHeader());
         });
+        public static void ConfigureEmail(this IServiceCollection services, IConfiguration configuration)
+        {
+
+            services.Configure<EmailConfiguration >(options => configuration.GetSection("EmailSettings").Bind(options));
+            services.AddScoped<EmailConfiguration>();
+        }
+
         public static void ConfigureIISIntegration(this IServiceCollection services) =>
         services.Configure<IISOptions>(options =>
         {
@@ -43,6 +56,7 @@ namespace AgricHub.API.Extension
             .AddEntityFrameworkStores<AgricHubDbContext>()
             .AddDefaultTokenProviders();
         }
+
         public static void ConfigureJWT(this IServiceCollection services, IConfiguration configuration)
         {
             var jwtSettings = configuration.GetSection("JwtSettings");
@@ -67,7 +81,19 @@ namespace AgricHub.API.Extension
                 };
             });
         }
-
+        public static void ConfigureServices(this IServiceCollection services)
+        {
+            services.Configure<FormOptions>(options =>
+            {
+                options.ValueLengthLimit = int.MaxValue;
+                options.MultipartBodyLengthLimit = int.MaxValue;
+                options.MemoryBufferThreshold = int.MaxValue;
+            });
+            services.AddScoped<IUserServices , UserService >();
+            
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IConsultantService, ConsultantService>();
+        }
 
     }
 }

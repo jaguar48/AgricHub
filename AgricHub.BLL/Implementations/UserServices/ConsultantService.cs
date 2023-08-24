@@ -54,7 +54,7 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
                 LgaId = request.LgaId
             });
 
-            await _userManager.AddToRoleAsync(user, "Seller");
+            await _userManager.AddToRoleAsync(user, "Consultant");
 
             var consultant = new Consultant
             {
@@ -94,6 +94,7 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
 
         private async Task CreateCustomerAccount(Consultant consultant)
         {
+            
             Wallet wallet = new()
             {
                 WalletNo = WalletIdGenerator.GenerateWalletId(),

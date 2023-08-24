@@ -21,6 +21,7 @@ builder.Services.Configure<FormOptions>(o =>
 });
 
 builder.Services.ConfigureIdentity();
+builder.Services.ConfigureEmail(builder.Configuration);
 
 builder.Services.ConfigureJWT(builder.Configuration);
 
@@ -28,7 +29,7 @@ builder.Services.ConfigureSqlContext(builder.Configuration);
 
 builder.Services.AddScoped<ValidationFilterAttribute>();
 
-builder.Services.AddControllers().AddApplicationPart(typeof(AgricHub.Presentation.AssemblyReference).Assembly);
+builder.Services.AddControllers().AddApplicationPart(typeof(AgricHub.Presentation.AssemblyReference ).Assembly);
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -64,7 +65,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork<AgricHubDbContext>>();
-/*builder.Services.ConfigureServices();*/
+builder.Services.ConfigureServices();
 builder.Services.AddHttpContextAccessor();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
