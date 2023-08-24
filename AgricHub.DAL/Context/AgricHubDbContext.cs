@@ -26,6 +26,8 @@ namespace AgricHub.DAL.Context
 
 
         public DbSet<Consultant> Consultants { get; set; }
+        public DbSet<Wallet> Wallets { get; set; }
+
 
     }
 }

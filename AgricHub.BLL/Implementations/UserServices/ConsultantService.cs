@@ -63,6 +63,9 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
                 PhoneNumber = request.PhoneNumber,
                 Email = request.Email,
                 BusinessName = request.BusinessName,
+                CountryId = request.CountryId,
+                StateId = request.StateId,
+                LgaId = request.LgaId,
                 UserId = user.Id
             };
 

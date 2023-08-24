@@ -20,7 +20,7 @@ namespace AgricHub.Presentation.Controllers
         }
 
         [HttpPost("register")]
-        [ServiceFilter(typeof(ValidationFilterAttribute))]
+       
         [SwaggerOperation("Registers a new consultant.")]
         [SwaggerResponse(200, "The consultant has been successfully registered.", typeof(ConsultantRegistrationRequest))]
         public async Task<IActionResult> RegisterConsultant([FromBody] ConsultantRegistrationRequest consultantRegistrationRequest)

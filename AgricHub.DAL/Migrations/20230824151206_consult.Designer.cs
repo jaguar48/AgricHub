@@ -4,6 +4,7 @@ using AgricHub.DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AgricHub.DAL.Migrations
 {
     [DbContext(typeof(AgricHubDbContext))]
-    partial class AgricHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230824151206_consult")]
+    partial class consult
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -161,35 +164,6 @@ namespace AgricHub.DAL.Migrations
                     b.ToTable("Consultants");
                 });
 
-            modelBuilder.Entity("AgricHub.DAL.Entities.Wallet", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(38,2)");
-
-                    b.Property<int>("ConsultantId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("WalletNo")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConsultantId");
-
-                    b.ToTable("Wallets");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -219,22 +193,22 @@ namespace AgricHub.DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "349e0fba-a928-4d9d-ae27-925d3f25a194",
-                            ConcurrencyStamp = "6d912fa8-4047-446b-b696-549a0c05355b",
+                            Id = "121c6379-7a31-43cb-9663-54e976cc1508",
+                            ConcurrencyStamp = "fb1b4f4a-a3a2-4dfb-ae0d-7934cb5de5de",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "2ced457e-de90-4751-a8d2-900b0bb88d26",
-                            ConcurrencyStamp = "33049767-1c68-4ba8-8d62-f00b5b9d8b89",
+                            Id = "26e31bd6-11ae-4933-8c31-47d0ba68c652",
+                            ConcurrencyStamp = "984657f8-ce60-48de-877c-64eba4007e30",
                             Name = "Consultant",
                             NormalizedName = "CONSULTANT"
                         },
                         new
                         {
-                            Id = "798304ad-50f1-47e8-8338-9cfd1cc5a031",
-                            ConcurrencyStamp = "ba133474-035e-4041-8877-655e39cb1c25",
+                            Id = "022618f0-40e1-4928-8f64-1528a6e50677",
+                            ConcurrencyStamp = "acc8e2a6-b2bd-4ea3-9434-318ce0e42bbc",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -355,17 +329,6 @@ namespace AgricHub.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("AgricHub.DAL.Entities.Wallet", b =>
-                {
-                    b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "consultant")
-                        .WithMany()
-                        .HasForeignKey("ConsultantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("consultant");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
