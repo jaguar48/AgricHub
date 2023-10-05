@@ -23,7 +23,7 @@ namespace AgricHub.Shared.DTO_s.Request
 
         public string CountryId { get; set; }
         public string StateId { get; set; }
-        public string LgaId { get; set; }
+        public string Address { get; set; }
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid Email Address")]

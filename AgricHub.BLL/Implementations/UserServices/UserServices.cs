@@ -40,7 +40,7 @@ namespace AgricHub.BLL.Implementations.UserServices
                 PhoneNumber = Request.PhoneNumber,
                 CountryId = Request.CountryId,
                 StateId = Request.StateId,
-                LgaId = Request.LgaId
+                Address = Request.Address
 
             };
 

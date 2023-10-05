@@ -29,7 +29,7 @@ namespace AgricHub.Shared.DTO_s.Request
         public string Email { get; init; }
         public string CountryId { get; set; }
         public string StateId { get; set; }
-        public string LgaId { get; set; }
+        public string Address { get; set; }
 
         [Required(ErrorMessage = "Phone Number is required")]
         public string PhoneNumber { get; init; }

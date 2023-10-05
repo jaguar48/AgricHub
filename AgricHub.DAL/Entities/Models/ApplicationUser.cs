@@ -13,7 +13,7 @@ namespace AgricHub.DAL.Entities
         public string LastName { get; set; }
         public string CountryId { get; set; }
         public string StateId { get; set; }
-        public string LgaId { get; set; }
+        public string Address { get; set; }
         public string? VerificationToken { get; set; }
     }
 }
