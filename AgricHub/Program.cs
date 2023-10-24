@@ -5,7 +5,9 @@ using AgricHub.Presentation.Filters;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,18 +69,23 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork<AgricHubDbContext>>();
 builder.Services.ConfigureServices();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddAutoMapper(Assembly.Load("AgricHub.BLL"));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
 var app = builder.Build();
+app.ConfigureExceptionHandler();
 
 app.UseCors("CorsPolicy");
 
 app.UseStaticFiles();
-/*{
+app.UseStaticFiles(new StaticFileOptions()
+{
     FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Resources")),
     RequestPath = new PathString("/Resources")
-});*/
+});
+
+
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {

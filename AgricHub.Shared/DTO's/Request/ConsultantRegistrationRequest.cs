@@ -15,8 +15,8 @@ namespace AgricHub.Shared.DTO_s.Request
         [Required(ErrorMessage = "Lastname is required")]
         public string LastName { get; init; }
 
-        [Required(ErrorMessage = "BusinessName is required")]
-        public string BusinessName { get; init; }
+      /*  [Required(ErrorMessage = "BusinessName is required")]
+        public string BusinessName { get; init; }*/
 
         [Required(ErrorMessage = "UserName is required")]
         public string UserName { get; init; }

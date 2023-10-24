@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace AgricHub.Presentation.Controllers
 {
     [ApiController]
-    [Route("/agrichub/authentication")]
+    [Route("/api/agrichub/authentication")]
     public class AuthController:ControllerBase
     {
         private readonly IAuthService _authentication;
