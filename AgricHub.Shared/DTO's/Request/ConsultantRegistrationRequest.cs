@@ -23,6 +23,7 @@ namespace AgricHub.Shared.DTO_s.Request
 
         [Required(ErrorMessage = "Password is required")]
         public string Password { get; init; }
+        public string BusinessName { get; init; }
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid Email Address")]

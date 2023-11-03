@@ -1,6 +1,8 @@
 ﻿using AgricHub.BLL.Helpers;
+using AgricHub.BLL.Implementations.AgrichubServices;
 using AgricHub.BLL.Implementations.UserServices;
 using AgricHub.BLL.Implementations.UserServices.UserServices;
+using AgricHub.BLL.Interfaces.IAgrichub_Services;
 using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.DAL.Context;
 using AgricHub.DAL.Entities;
@@ -90,9 +92,12 @@ namespace AgricHub.API.Extension
                 options.MemoryBufferThreshold = int.MaxValue;
             });
             services.AddScoped<IUserServices , UserService >();
+
             
+
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IConsultantService, ConsultantService>();
+            services.AddScoped<IBusiness_ConsultServices, BusinessConsultService>();
         }
 
     }

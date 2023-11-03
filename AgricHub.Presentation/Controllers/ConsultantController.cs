@@ -11,12 +11,12 @@ namespace AgricHub.Presentation.Controllers
     public class ConsultantController : ControllerBase
     {
         private readonly IConsultantService _consultantServices;
-        /* private readonly ISellerProfileServices _sellerProfileServices;*/
+      
 
         public ConsultantController(IConsultantService consultantServices)
         {
             _consultantServices = consultantServices;
-            /*_sellerProfileServices = sellerProfileServices;*/
+           
         }
 
         [HttpPost("register")]
