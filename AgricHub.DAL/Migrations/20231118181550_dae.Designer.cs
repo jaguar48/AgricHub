@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AgricHub.DAL.Migrations
 {
     [DbContext(typeof(AgricHubDbContext))]
-    [Migration("20230824123957_fresh")]
-    partial class fresh
+    [Migration("20231118181550_dae")]
+    partial class dae
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,6 +32,10 @@ namespace AgricHub.DAL.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -53,10 +57,6 @@ namespace AgricHub.DAL.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LgaId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -113,6 +113,102 @@ namespace AgricHub.DAL.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("AgricHub.DAL.Entities.Business", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BusinessName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ConsultantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ConsultantId");
+
+                    b.ToTable("Businesses");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.BusinessReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BusinessId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("BusinessId1")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId1");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("BusinessReview");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("categories");
+                });
+
             modelBuilder.Entity("AgricHub.DAL.Entities.Models.Consultant", b =>
                 {
                     b.Property<int>("Id")
@@ -121,12 +217,14 @@ namespace AgricHub.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("BusinessName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CountryId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
@@ -141,20 +239,13 @@ namespace AgricHub.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("LgaId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StateId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -162,6 +253,35 @@ namespace AgricHub.DAL.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Consultants");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Wallet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("decimal(38,2)");
+
+                    b.Property<int>("ConsultantId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("WalletNo")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsultantId");
+
+                    b.ToTable("Wallets");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -193,22 +313,22 @@ namespace AgricHub.DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "410f2605-a5c8-46c5-889d-fb2a6cecf13b",
-                            ConcurrencyStamp = "6857eff6-e74a-4ccd-8b1c-fe61b4434618",
+                            Id = "94984f8a-1190-4eb2-8f1d-1ab3e902917f",
+                            ConcurrencyStamp = "61aad74b-c3b9-4a60-9683-3d6092d40111",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "eedf4b5d-1d74-4853-8211-02a8d3f2f0a6",
-                            ConcurrencyStamp = "ff8f972d-36d3-41dd-a749-6217b880974a",
+                            Id = "8ead2d22-864b-42d6-861d-dec33bc1d135",
+                            ConcurrencyStamp = "5b6bb1a1-0e01-4a3d-9893-b0d182b79f36",
                             Name = "Consultant",
                             NormalizedName = "CONSULTANT"
                         },
                         new
                         {
-                            Id = "23981e2b-8f38-4e5e-8937-8505b698f246",
-                            ConcurrencyStamp = "87c64678-0d5c-4e9e-9b62-1bcb56af7120",
+                            Id = "e70c8dbe-dde9-4be7-b025-53d7e250e561",
+                            ConcurrencyStamp = "7014e78f-be10-4e83-a3b4-8f171d8baf07",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -320,15 +440,62 @@ namespace AgricHub.DAL.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("AgricHub.DAL.Entities.Models.Consultant", b =>
+            modelBuilder.Entity("AgricHub.DAL.Entities.Business", b =>
                 {
+                    b.HasOne("AgricHub.DAL.Entities.Category", "Category")
+                        .WithMany("Businesses")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "consultant")
+                        .WithMany()
+                        .HasForeignKey("ConsultantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("consultant");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.BusinessReview", b =>
+                {
+                    b.HasOne("AgricHub.DAL.Entities.Business", "Business")
+                        .WithMany("BusinessReview")
+                        .HasForeignKey("BusinessId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("AgricHub.DAL.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Business");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Models.Consultant", b =>
+                {
+                    b.HasOne("AgricHub.DAL.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Wallet", b =>
+                {
+                    b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "consultant")
+                        .WithMany()
+                        .HasForeignKey("ConsultantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("consultant");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -380,6 +547,16 @@ namespace AgricHub.DAL.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Business", b =>
+                {
+                    b.Navigation("BusinessReview");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Category", b =>
+                {
+                    b.Navigation("Businesses");
                 });
 #pragma warning restore 612, 618
         }

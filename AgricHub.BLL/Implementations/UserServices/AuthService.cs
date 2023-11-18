@@ -155,12 +155,13 @@ namespace AgricHub.BLL.Implementations.UserServices
 
         }
 
-        private static SigningCredentials GetSigningCredentials()
+     
+        private SigningCredentials GetSigningCredentials()
         {
-            var key = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET"));
+            var jwtSettings = _configuration.GetSection("JwtSettings");
+            var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"]);
             var secret = new SymmetricSecurityKey(key);
             return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
-
         }
 
         private async Task<List<Claim>> GetClaims()

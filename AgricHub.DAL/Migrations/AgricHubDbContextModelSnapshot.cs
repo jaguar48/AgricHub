@@ -197,16 +197,11 @@ namespace AgricHub.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ConsultantId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ConsultantId");
 
                     b.ToTable("categories");
                 });
@@ -315,22 +310,22 @@ namespace AgricHub.DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "bde1c1c4-1931-449f-98a6-61978b8a7b73",
-                            ConcurrencyStamp = "b7e35e37-6189-487f-bd2c-3674b16c4877",
+                            Id = "94984f8a-1190-4eb2-8f1d-1ab3e902917f",
+                            ConcurrencyStamp = "61aad74b-c3b9-4a60-9683-3d6092d40111",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "48d2fb35-1623-4446-8a9b-a8cf399348cc",
-                            ConcurrencyStamp = "6717adf9-b966-4310-8269-81e032ef825f",
+                            Id = "8ead2d22-864b-42d6-861d-dec33bc1d135",
+                            ConcurrencyStamp = "5b6bb1a1-0e01-4a3d-9893-b0d182b79f36",
                             Name = "Consultant",
                             NormalizedName = "CONSULTANT"
                         },
                         new
                         {
-                            Id = "c5bd26da-1571-471e-981f-f251d23cdea5",
-                            ConcurrencyStamp = "ece21bce-a81a-4095-9f15-52487555f4e6",
+                            Id = "e70c8dbe-dde9-4be7-b025-53d7e250e561",
+                            ConcurrencyStamp = "7014e78f-be10-4e83-a3b4-8f171d8baf07",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -445,9 +440,9 @@ namespace AgricHub.DAL.Migrations
             modelBuilder.Entity("AgricHub.DAL.Entities.Business", b =>
                 {
                     b.HasOne("AgricHub.DAL.Entities.Category", "Category")
-                        .WithMany()
+                        .WithMany("Businesses")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "consultant")
@@ -478,17 +473,6 @@ namespace AgricHub.DAL.Migrations
                     b.Navigation("Business");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("AgricHub.DAL.Entities.Category", b =>
-                {
-                    b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "consultant")
-                        .WithMany()
-                        .HasForeignKey("ConsultantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("consultant");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Models.Consultant", b =>
@@ -565,6 +549,11 @@ namespace AgricHub.DAL.Migrations
             modelBuilder.Entity("AgricHub.DAL.Entities.Business", b =>
                 {
                     b.Navigation("BusinessReview");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Category", b =>
+                {
+                    b.Navigation("Businesses");
                 });
 #pragma warning restore 612, 618
         }

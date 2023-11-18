@@ -14,8 +14,18 @@ namespace AgricHub.DAL.Context
             }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Business>()
+        .HasOne(b => b.Category)
+        .WithMany()
+        .HasForeignKey(b => b.CategoryId)
+        .OnDelete(DeleteBehavior.Restrict);
 
-           
+
+            modelBuilder.Entity<Category>()
+       .HasMany(c => c.Businesses)
+       .WithOne(b => b.Category)
+       .HasForeignKey(b => b.CategoryId)
+       .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);
 

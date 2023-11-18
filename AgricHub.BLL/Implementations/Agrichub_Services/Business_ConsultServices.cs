@@ -105,23 +105,23 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
 
         public async Task<string> AddCategory(CreateCategoryRequest categoryRequest)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+           /* var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (userId == null)
             {
                 throw new Exception("User not found");
             }
-
+*/
             var category = _mapper.Map<Category>(categoryRequest);
 
-            Consultant consultant  = await _consultantRepo.GetSingleByAsync(s => s.UserId == userId);
-
+          /*  Consultant consultant  = await _consultantRepo.GetSingleByAsync(s => s.UserId == userId);*/
+/*
             if (consultant == null)
             {
                 throw new Exception("Consultant not found");
             }
 
-            category.ConsultantId = consultant.Id;
+            category.ConsultantId = consultant.Id;*/
 
             await _categoryRepo.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
