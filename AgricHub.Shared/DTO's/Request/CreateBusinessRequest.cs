@@ -10,7 +10,7 @@ namespace AgricHub.Shared.DTO_s.Request
 {
     public class CreateBusinessRequest
     {
-        public Guid Guid { get; set; } = Guid.NewGuid();
+       
         [Required(ErrorMessage = "name is required")]
         public string BusinessName { get; set; }
         [Required(ErrorMessage = "name is required")]

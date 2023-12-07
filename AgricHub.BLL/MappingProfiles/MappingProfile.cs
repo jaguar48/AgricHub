@@ -20,6 +20,9 @@ namespace AgricHub.BLL.MappingProfiles
             CreateMap<CreateBusinessRequest, Business>();
             CreateMap<Business, CreateBusinessRequest>();
 
+            CreateMap<CreateCategoryRequest, Category>();
+            CreateMap<Category, CreateCategoryRequest>();
+
         }
     }
 }
