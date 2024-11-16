@@ -36,15 +36,27 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
 
         public async Task<string> AddBusiness(CreateBusinessRequest businessRequest)
         {
-
             if (businessRequest.File == null || businessRequest.File.Length == 0)
             {
-                throw new Exception("Image file is required");
+                throw new Exception("Image file is required.");
+            }
+
+            // Validate file size (max 5MB)
+            if (businessRequest.File.Length > 5 * 1024 * 1024) // 5 MB
+            {
+                throw new Exception("File size exceeds the 5MB limit.");
+            }
+
+            // Validate file type (only jpg, jpeg, png)
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var fileExtension = Path.GetExtension(businessRequest.File.FileName).ToLower();
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new Exception("Invalid file type. Only JPG, JPEG, and PNG are allowed.");
             }
 
             var folderName = Path.Combine("Resources", "Images");
             var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
-
 
             if (!Directory.Exists(pathToSave))
             {
@@ -55,53 +67,53 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
             var fullPath = Path.Combine(pathToSave, fileName);
             var dbPath = Path.Combine(folderName, fileName).Replace('\\', '/');
 
-
             using (var stream = new FileStream(fullPath, FileMode.Create))
             {
                 await businessRequest.File.CopyToAsync(stream);
             }
 
             var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             if (userId == null)
             {
-                throw new Exception("User not found");
+                throw new Exception("User not found.");
             }
 
-
-
             var business = _mapper.Map<Business>(businessRequest);
+            business.ImagePath = dbPath;  // Set the image path
 
+            // Fetch consultant
             Consultant consultant = await _consultantRepo.GetSingleByAsync(s => s.UserId == userId);
-
             if (consultant == null)
             {
-                throw new Exception("Seller not found");
+                throw new Exception("Consultant not found.");
+            }
+
+            if (!consultant.IsVerified)
+            {
+                throw new Exception("Your account has not been verified. Please verify your account before creating a business.");
             }
 
             business.ConsultantId = consultant.Id;
 
-            var categories = await _categoryRepo.GetAllAsync();
-
-
-            if (businessRequest.CategoryId > 0)
+            // Check if the category exists
+            var category = await _categoryRepo.GetByIdAsync(businessRequest.CategoryId);
+            if (category == null)
             {
-                var category = categories.FirstOrDefault(c => c.Id == business.CategoryId);
-                if (category != null)
-                {
-                    business.Category = category;
-                }
+                throw new Exception("Invalid Category ID.");
             }
 
+            business.Category = category;
 
+            // Set DateCreated to current UTC time
+            business.DateCreated = DateTime.UtcNow;
 
             await _businessRepo.AddAsync(business);
             await _unitOfWork.SaveChangesAsync();
 
-            var result = new { success = true, message = "business created successfully" };
+            var result = new { success = true, message = "Business created successfully." };
             return JsonConvert.SerializeObject(result);
-
         }
+
 
         public async Task<string> AddCategory(CreateCategoryRequest categoryRequest)
         {

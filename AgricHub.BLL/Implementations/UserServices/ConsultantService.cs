@@ -72,15 +72,16 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
             await _consultantRepo.AddAsync(consultant);
             await CreateCustomerAccount(consultant);
 
-           /* var verificationToken = Guid.NewGuid().ToString();
-            var emailSent = await _authService.SendVerificationEmail(request.Email, verificationToken);*/
+            /* var verificationToken = Guid.NewGuid().ToString();
+             var emailSent = await _authService.SendVerificationEmail(request.Email, verificationToken);*/
 
-           /* if (emailSent)
-            {
+            /* if (emailSent)
+             {
 
-                user.VerificationToken = verificationToken;
-                await _userManager.UpdateAsync(user);
-*/
+                 user.VerificationToken = verificationToken;
+                 await _userManager.UpdateAsync(user);
+ */
+            
 
                 var result = new { success = true, message = "Registration Successful! Please check your email for the verification link." };
                 return JsonConvert.SerializeObject(result);
@@ -93,6 +94,11 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
             }*/
         }
 
+       /* public async Task<string> VerifyConsultant(ConsultantVerificationRequest request)
+        {
+
+
+        }*/
 
 
         private async Task CreateCustomerAccount(Consultant consultant)

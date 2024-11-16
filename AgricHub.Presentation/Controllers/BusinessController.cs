@@ -28,7 +28,7 @@ namespace AgricHub.Presentation.Controllers
 
         [HttpPost("createBusiness")]
 
-        public async Task<IActionResult> Createbusiness([FromBody] CreateBusinessRequest businessRequest)
+        public async Task<IActionResult> Createbusiness([FromForm] CreateBusinessRequest businessRequest)
         {
 
             var result = await _business_ConsultServices.AddBusiness(businessRequest);
