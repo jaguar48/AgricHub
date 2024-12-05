@@ -7,15 +7,9 @@ using System.Threading.Tasks;
 
 namespace AgricHub.BLL.Interfaces.IAgrichub_Services
 {
-    public interface IBusiness_ConsultServices
+    public interface IBusinessForService
     {
 
-        Task<string> AddCategory(CreateCategoryRequest categoryRequest);
-
-        Task<string> AddBusiness(CreateBusinessRequest businessRequest);
+        Task<string> AddService(CreateServiceRequest serviceRequest);
     }
 }
-
-
-
-

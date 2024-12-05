@@ -79,7 +79,7 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
             }
 
             var business = _mapper.Map<Business>(businessRequest);
-            business.ImagePath = dbPath;  // Set the image path
+            business.ImagePath = dbPath;  
 
             // Fetch consultant
             Consultant consultant = await _consultantRepo.GetSingleByAsync(s => s.UserId == userId);

@@ -2,6 +2,7 @@
 using AgricHub.DAL.Entities.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 
 namespace AgricHub.DAL.Context
 {
@@ -36,6 +37,7 @@ namespace AgricHub.DAL.Context
 
 
         public DbSet<Consultant> Consultants { get; set; }
+        public DbSet<Service> Services { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Business> Businesses { get; set; }
         public DbSet<Category> categories { get; set; }

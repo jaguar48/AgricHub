@@ -98,6 +98,7 @@ namespace AgricHub.API.Extension
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IConsultantService, ConsultantService>();
             services.AddScoped<IBusiness_ConsultServices, BusinessConsultService>();
+            services.AddScoped<IBusinessForService, BusinessForService>();
         }
 
     }
