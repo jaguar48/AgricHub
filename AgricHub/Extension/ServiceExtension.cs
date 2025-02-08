@@ -4,6 +4,7 @@ using AgricHub.BLL.Implementations.UserServices;
 using AgricHub.BLL.Implementations.UserServices.UserServices;
 using AgricHub.BLL.Interfaces.IAgrichub_Services;
 using AgricHub.BLL.Interfaces.IUserServices;
+using AgricHub.DAL;
 using AgricHub.DAL.Context;
 using AgricHub.DAL.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,6 +20,7 @@ namespace AgricHub.API.Extension
 {
     public static class ServiceExtension
     {
+        
         public static void ConfigureCors(this IServiceCollection services) =>
         services.AddCors(options =>
         {

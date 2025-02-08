@@ -11,9 +11,9 @@ using AgricHub.DAL.Entities;
 
 namespace AgricHub.DAL
 {
-    public class RoleConfiguration : IEntityTypeConfiguration<IdentityRole>
+    public static class DataSeeder
     {
-        public void Configure(EntityTypeBuilder<IdentityRole> builder)
+       /* public void Configure(EntityTypeBuilder<IdentityRole> builder)
         {
             builder.HasData(
                 new IdentityRole
@@ -69,7 +69,21 @@ namespace AgricHub.DAL
                 var result = roleManager.CreateAsync(role).Result;
             }
         }
+*/
 
+
+        public static async Task SeedRoles(RoleManager<IdentityRole> roleManager)
+        {
+            var roles = new[] { "Admin", "Consultant", "Customer"};
+
+            foreach (var role in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
+            }
+        }
 
 
     }

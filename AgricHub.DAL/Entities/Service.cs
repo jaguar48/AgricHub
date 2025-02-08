@@ -18,7 +18,7 @@ namespace AgricHub.DAL.Entities
         public int BusinessId { get; set; }
         public virtual Business Business { get; set; }
 
-        public DateTime DateAdded { get; set; } = DateTime.UtcNow;
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
     }
 
 }

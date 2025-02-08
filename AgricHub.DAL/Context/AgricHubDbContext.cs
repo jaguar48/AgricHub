@@ -30,7 +30,7 @@ namespace AgricHub.DAL.Context
 
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.ApplyConfiguration(new RoleConfiguration());
+            /*modelBuilder.ApplyConfiguration(new RoleConfiguration());*/
 
 
         }

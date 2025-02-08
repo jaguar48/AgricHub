@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AgricHub.DAL.Migrations
 {
     [DbContext(typeof(AgricHubDbContext))]
-    [Migration("20231118181550_dae")]
-    partial class dae
+    [Migration("20250207231846_second")]
+    partial class second
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -145,6 +145,9 @@ namespace AgricHub.DAL.Migrations
                     b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
@@ -162,11 +165,7 @@ namespace AgricHub.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("BusinessId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("BusinessId1")
+                    b.Property<int>("BusinessId")
                         .HasColumnType("int");
 
                     b.Property<string>("Comment")
@@ -185,7 +184,7 @@ namespace AgricHub.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BusinessId1");
+                    b.HasIndex("BusinessId");
 
                     b.HasIndex("UserId");
 
@@ -235,6 +234,9 @@ namespace AgricHub.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -253,6 +255,44 @@ namespace AgricHub.DAL.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Consultants");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Service", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BusinessId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ServiceName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Wallet", b =>
@@ -309,29 +349,6 @@ namespace AgricHub.DAL.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "94984f8a-1190-4eb2-8f1d-1ab3e902917f",
-                            ConcurrencyStamp = "61aad74b-c3b9-4a60-9683-3d6092d40111",
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = "8ead2d22-864b-42d6-861d-dec33bc1d135",
-                            ConcurrencyStamp = "5b6bb1a1-0e01-4a3d-9893-b0d182b79f36",
-                            Name = "Consultant",
-                            NormalizedName = "CONSULTANT"
-                        },
-                        new
-                        {
-                            Id = "e70c8dbe-dde9-4be7-b025-53d7e250e561",
-                            ConcurrencyStamp = "7014e78f-be10-4e83-a3b4-8f171d8baf07",
-                            Name = "Customer",
-                            NormalizedName = "CUSTOMER"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -463,7 +480,7 @@ namespace AgricHub.DAL.Migrations
                 {
                     b.HasOne("AgricHub.DAL.Entities.Business", "Business")
                         .WithMany("BusinessReview")
-                        .HasForeignKey("BusinessId1")
+                        .HasForeignKey("BusinessId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -485,6 +502,17 @@ namespace AgricHub.DAL.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Service", b =>
+                {
+                    b.HasOne("AgricHub.DAL.Entities.Business", "Business")
+                        .WithMany()
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Business");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Wallet", b =>

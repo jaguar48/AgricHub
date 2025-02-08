@@ -15,7 +15,8 @@ namespace AgricHub.BLL.MappingProfiles
     {
         public MappingProfile()
         {
-            
+            CreateMap<CreateServiceRequest, Service>();
+            CreateMap<Service, CreateServiceRequest>();
 
             CreateMap<CreateBusinessRequest, Business>();
             CreateMap<Business, CreateBusinessRequest>();
@@ -25,4 +26,5 @@ namespace AgricHub.BLL.MappingProfiles
 
         }
     }
+  
 }

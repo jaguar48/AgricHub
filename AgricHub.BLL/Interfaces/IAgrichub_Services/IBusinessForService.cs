@@ -10,6 +10,7 @@ namespace AgricHub.BLL.Interfaces.IAgrichub_Services
     public interface IBusinessForService
     {
 
-        Task<string> AddService(CreateServiceRequest serviceRequest);
+        Task<string> AddServiceAsync(CreateServiceRequest serviceRequest);
+        Task<string> UpdateServiceAsync(int serviceId, CreateServiceRequest serviceRequest);
     }
 }

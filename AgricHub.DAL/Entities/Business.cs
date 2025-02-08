@@ -1,6 +1,8 @@
 ﻿using AgricHub.DAL.Entities.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +11,9 @@ namespace AgricHub.DAL.Entities
 {
     public class Business
     {
-        public int Id { get; set; } 
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // Ensures auto-generation of Id
+        public int Id { get; set; }
         public string BusinessName { get; set; }
         public string Description { get; set; }
 

@@ -3,12 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace AgricHub.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class dae : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -190,6 +188,7 @@ namespace AgricHub.DAL.Migrations
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     CountryId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsVerified = table.Column<bool>(type: "bit", nullable: false),
                     StateId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -211,6 +210,7 @@ namespace AgricHub.DAL.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BusinessName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsVerified = table.Column<bool>(type: "bit", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
@@ -262,12 +262,11 @@ namespace AgricHub.DAL.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    BusinessId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Rating = table.Column<int>(type: "int", nullable: false),
                     Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    BusinessId1 = table.Column<int>(type: "int", nullable: false)
+                    BusinessId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -279,21 +278,36 @@ namespace AgricHub.DAL.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_BusinessReview_Businesses_BusinessId1",
-                        column: x => x.BusinessId1,
+                        name: "FK_BusinessReview_Businesses_BusinessId",
+                        column: x => x.BusinessId,
                         principalTable: "Businesses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
-                table: "AspNetRoles",
-                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[,]
+            migrationBuilder.CreateTable(
+                name: "Services",
+                columns: table => new
                 {
-                    { "8ead2d22-864b-42d6-861d-dec33bc1d135", "5b6bb1a1-0e01-4a3d-9893-b0d182b79f36", "Consultant", "CONSULTANT" },
-                    { "94984f8a-1190-4eb2-8f1d-1ab3e902917f", "61aad74b-c3b9-4a60-9683-3d6092d40111", "Admin", "ADMIN" },
-                    { "e70c8dbe-dde9-4be7-b025-53d7e250e561", "7014e78f-be10-4e83-a3b4-8f171d8baf07", "Customer", "CUSTOMER" }
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ServiceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    IsAvailable = table.Column<bool>(type: "bit", nullable: false),
+                    ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BusinessId = table.Column<int>(type: "int", nullable: false),
+                    DateAdded = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Services", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Services_Businesses_BusinessId",
+                        column: x => x.BusinessId,
+                        principalTable: "Businesses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -346,9 +360,9 @@ namespace AgricHub.DAL.Migrations
                 column: "ConsultantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BusinessReview_BusinessId1",
+                name: "IX_BusinessReview_BusinessId",
                 table: "BusinessReview",
-                column: "BusinessId1");
+                column: "BusinessId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BusinessReview_UserId",
@@ -359,6 +373,11 @@ namespace AgricHub.DAL.Migrations
                 name: "IX_Consultants_UserId",
                 table: "Consultants",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Services_BusinessId",
+                table: "Services",
+                column: "BusinessId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Wallets_ConsultantId",
@@ -386,6 +405,9 @@ namespace AgricHub.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "BusinessReview");
+
+            migrationBuilder.DropTable(
+                name: "Services");
 
             migrationBuilder.DropTable(
                 name: "Wallets");

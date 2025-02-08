@@ -41,13 +41,13 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                 throw new Exception("Image file is required.");
             }
 
-            // Validate file size (max 5MB)
-            if (businessRequest.File.Length > 5 * 1024 * 1024) // 5 MB
+            
+            if (businessRequest.File.Length > 5 * 1024 * 1024) 
             {
                 throw new Exception("File size exceeds the 5MB limit.");
             }
 
-            // Validate file type (only jpg, jpeg, png)
+          
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
             var fileExtension = Path.GetExtension(businessRequest.File.FileName).ToLower();
             if (!allowedExtensions.Contains(fileExtension))
@@ -88,10 +88,10 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                 throw new Exception("Consultant not found.");
             }
 
-            if (!consultant.IsVerified)
+         /*   if (!consultant.IsVerified)
             {
                 throw new Exception("Your account has not been verified. Please verify your account before creating a business.");
-            }
+            }*/
 
             business.ConsultantId = consultant.Id;
 
@@ -104,7 +104,7 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
 
             business.Category = category;
 
-            // Set DateCreated to current UTC time
+           
             business.DateCreated = DateTime.UtcNow;
 
             await _businessRepo.AddAsync(business);

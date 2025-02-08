@@ -1,9 +1,11 @@
 using AgricHub.API.Extension;
 using AgricHub.Contracts;
+using AgricHub.DAL;
 using AgricHub.DAL.Context;
 using AgricHub.Presentation.Filters;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
@@ -66,6 +68,7 @@ builder.Services.AddSwaggerGen(c =>
                 });
 });
 
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork<AgricHubDbContext>>();
 builder.Services.ConfigureServices();
 builder.Services.AddHttpContextAccessor();
@@ -103,5 +106,15 @@ app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "AgricHub v1");
 });
+
+using (var scope = app.Services.CreateScope())
+{
+    var servicesProvider = scope.ServiceProvider;
+    var roleManager = servicesProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    await DataSeeder.SeedRoles(roleManager);
+
+    /*var userManager = servicesProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    await DataSeeder.SeedUsers(userManager);*/
+}
 
 app.Run();
