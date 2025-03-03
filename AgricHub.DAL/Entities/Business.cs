@@ -14,21 +14,22 @@ namespace AgricHub.DAL.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // Ensures auto-generation of Id
         public int Id { get; set; }
-        public string BusinessName { get; set; }
-        public string Description { get; set; }
+        public required string BusinessName { get; set; }
+        public required string Description { get; set; }
 
         public bool IsVerified { get; set; } = false;
-        public string Address { get; set; }
+        public required string Address { get; set; }
         public string? ImagePath { get; set; }
-        public Category Category { get; set; }
+        public Category? Category { get; set; }
         public int CategoryId { get; set; }
 
-        public Consultant consultant { get; set; }
+        public Consultant? Consultant { get; set; }
 
         public int ConsultantId { get; set; }
+
         public DateTime DateCreated { get; set; } = new DateTime();
+        public DateTime? DateUpdated { get; set; }
 
-        public virtual ICollection<BusinessReview> BusinessReview { get; set; }
-
+        public virtual ICollection<BusinessReview>? BusinessReview { get; set; }
     }
 }

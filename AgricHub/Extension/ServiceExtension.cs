@@ -1,9 +1,11 @@
 ﻿using AgricHub.BLL.Helpers;
 using AgricHub.BLL.Implementations.AgrichubServices;
+using AgricHub.BLL.Implementations.RatingAndReview;
 using AgricHub.BLL.Implementations.UserServices;
 using AgricHub.BLL.Implementations.UserServices.UserServices;
 using AgricHub.BLL.Interfaces.IAgrichub_Services;
 using AgricHub.BLL.Interfaces.IUserServices;
+using AgricHub.BLL.Interfaces.RatingAndReview;
 using AgricHub.DAL;
 using AgricHub.DAL.Context;
 using AgricHub.DAL.Entities;
@@ -20,7 +22,7 @@ namespace AgricHub.API.Extension
 {
     public static class ServiceExtension
     {
-        
+
         public static void ConfigureCors(this IServiceCollection services) =>
         services.AddCors(options =>
         {
@@ -32,7 +34,7 @@ namespace AgricHub.API.Extension
         public static void ConfigureEmail(this IServiceCollection services, IConfiguration configuration)
         {
 
-            services.Configure<EmailConfiguration >(options => configuration.GetSection("EmailSettings").Bind(options));
+            services.Configure<EmailConfiguration>(options => configuration.GetSection("EmailSettings").Bind(options));
             services.AddScoped<EmailConfiguration>();
         }
 
@@ -93,14 +95,20 @@ namespace AgricHub.API.Extension
                 options.MultipartBodyLengthLimit = int.MaxValue;
                 options.MemoryBufferThreshold = int.MaxValue;
             });
-            services.AddScoped<IUserServices , UserService >();
+            services.AddScoped<IUserServices, UserService>();
 
-            
+
 
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IConsultantService, ConsultantService>();
             services.AddScoped<IBusiness_ConsultServices, BusinessConsultService>();
             services.AddScoped<IBusinessForService, BusinessForService>();
+
+            services.AddScoped<IConsultationValidator, ConsultationValidator>();
+            services.AddScoped<IReviewSubmitter, ReviewService>();
+            services.AddScoped<IReviewRetriever, ReviewService>();
+            services.AddScoped<IRatingCalculator, ConsultantProfileService>();
+            services.AddScoped<IReviewModeration, ReviewModerationService>();
         }
 
     }

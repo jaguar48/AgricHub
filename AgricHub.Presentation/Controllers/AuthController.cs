@@ -38,7 +38,6 @@ namespace AgricHub.Presentation.Controllers
             var response = await _authentication.ValidateUser(user);
 
 
-
             if (!response.Success)
                 return BadRequest(response);
 
