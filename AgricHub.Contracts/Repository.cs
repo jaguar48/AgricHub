@@ -58,19 +58,19 @@ namespace AgricHub.Contracts
         }
 
 
-        public bool Any(Expression<Func<T, bool>> predicate = null)
+        public bool Any(Expression<Func<T, bool>>? predicate = null)
         {
             if (predicate == null) return _dbSet.Any();
             return _dbSet.Any(predicate);
         }
 
-        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate = null)
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>>? predicate = null)
         {
             if (predicate == null) return await _dbSet.AnyAsync();
             return await _dbSet.AnyAsync(predicate);
         }
 
-        public virtual long Count(Expression<Func<T, bool>> predicate = null)
+        public virtual long Count(Expression<Func<T, bool>>? predicate = null)
         {
             try
             {
@@ -225,7 +225,7 @@ namespace AgricHub.Contracts
             GC.SuppressFinalize(this);
         }
 
-        public virtual IEnumerable<T> GetAll(Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, params string[] includeProperties)
+        public virtual IEnumerable<T> GetAll(Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, params string[] includeProperties)
         {
             try
             {

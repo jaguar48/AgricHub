@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -12,6 +12,7 @@
     <PackageReference Include="GoogleApi" Version="5.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="SendGrid" Version="9.28.1" />
+    <PackageReference Include="MailKit" Version="4.8.0" />
   </ItemGroup>
 
   <ItemGroup>

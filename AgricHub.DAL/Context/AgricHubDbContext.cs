@@ -1,18 +1,14 @@
 ﻿using AgricHub.DAL.Entities;
 using AgricHub.DAL.Entities.Models;
+using AgricHub.DAL.Entities.Models.RatingAndReview;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 
 namespace AgricHub.DAL.Context
 {
-    public class AgricHubDbContext : IdentityDbContext<ApplicationUser>
+    public class AgricHubDbContext(DbContextOptions<AgricHubDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
-        
-            public AgricHubDbContext(DbContextOptions<AgricHubDbContext> options)
-                : base(options)
-            {
-            }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Business>()
@@ -32,7 +28,9 @@ namespace AgricHub.DAL.Context
 
             /*modelBuilder.ApplyConfiguration(new RoleConfiguration());*/
 
-
+            modelBuilder.ApplyConfiguration(new ConsultantReviewConfiguration());
+            modelBuilder.ApplyConfiguration(new ReviewReportConfiguration());
+            modelBuilder.ApplyConfiguration(new ConsultationConfiguration());
         }
 
 
@@ -40,7 +38,10 @@ namespace AgricHub.DAL.Context
         public DbSet<Service> Services { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Business> Businesses { get; set; }
-        public DbSet<Category> categories { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<ConsultantReview> ConsultantReviews { get; set; }
+        public DbSet<ReviewReport> ReviewReports { get; set; }
+        public DbSet<Consultation> Consultations { get; set; }
 
     }
 }
