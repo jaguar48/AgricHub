@@ -16,7 +16,7 @@ public class Consultation
 
         [Required]
         [ForeignKey(nameof(User))]
-        public int UserId { get; set; }
+        public required string UserId { get; set; }
 
         [Required]
         public DateTime StartDate { get; set; }

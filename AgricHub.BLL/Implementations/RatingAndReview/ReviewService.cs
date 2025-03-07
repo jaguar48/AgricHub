@@ -25,11 +25,11 @@ namespace AgricHub.BLL.Implementations.RatingAndReview
 
         public event Action<ReviewSubmittedEventArgs>? OnReviewSubmitted;
 
-        public async Task<OperationResult<int>> SubmitReviewAsync(int consultantId, int userId,
+        public async Task<OperationResult<int>> SubmitReviewAsync(int consultantId, string userId,
             int rating, string? comment = null, int? consultationId = null)
         {
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
-            
+
             try
             {
                 // Validate rating range
@@ -91,7 +91,15 @@ namespace AgricHub.BLL.Implementations.RatingAndReview
             {
                 var query = _dbContext.ConsultantReviews
                     .Where(r => r.ConsultantId == consultantId && !r.IsHidden)
-                    .Include(r => r.User)
+                    .Select(r => new ConsultantReviewResponse(
+                        r.Id,
+                        r.ConsultantId,
+                        r.UserId,
+                        r.Rating,
+                        r.Comment,
+                        r.CreatedDate,
+                        r.ConsultationId
+                    ))
                     .AsQueryable();
 
                 // Apply sorting

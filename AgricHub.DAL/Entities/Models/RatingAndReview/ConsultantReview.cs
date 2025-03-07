@@ -16,7 +16,7 @@ public class ConsultantReview
 
     [Required]
     [ForeignKey(nameof(User))]
-    public int UserId { get; set; }
+    public required string UserId { get; set; }
 
     [Required]
     [Range(1, 5)]

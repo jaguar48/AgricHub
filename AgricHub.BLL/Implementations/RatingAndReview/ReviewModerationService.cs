@@ -15,7 +15,7 @@ public class ReviewModerationService(AgricHubDbContext dbContext, ILogger<Review
     private readonly AgricHubDbContext _dbContext = dbContext;
     private readonly ILogger<ReviewModerationService> _logger = logger;
 
-    public async Task<OperationResult<int>> FlagReviewAsync(int reviewId, int reportingUserId,
+    public async Task<OperationResult<int>> FlagReviewAsync(int reviewId, string reportingUserId,
         ReportReason reason, string? details = null)
     {
         try
@@ -39,8 +39,8 @@ public class ReviewModerationService(AgricHubDbContext dbContext, ILogger<Review
                 Details = details,
                 Status = ReportStatus.Pending,
                 ReportedAt = DateTime.UtcNow,
-                ResolvedAt =  null,
-                ResolvedByUserId =  null
+                ResolvedAt = null,
+                ResolvedByUserId = null
             };
 
             _dbContext.ReviewReports.Add(report);
@@ -60,7 +60,19 @@ public class ReviewModerationService(AgricHubDbContext dbContext, ILogger<Review
     {
         var query = _dbContext.ReviewReports
             .Where(r => r.Status == ReportStatus.Pending)
-            .OrderBy(r => r.ReportedAt);
+            .OrderBy(r => r.ReportedAt)
+            .Select(r => new ReviewReportResponse(
+                r.Id,
+                r.ReviewId,
+                r.ReportingUserId,
+                r.Reason,
+                r.Details,
+                r.Status,
+                r.ReportedAt,
+                r.ResolvedAt,
+                r.ResolvedByUserId
+            ))
+            .AsQueryable();
 
         if (olderThan.HasValue)
         {
@@ -84,7 +96,7 @@ public class ReviewModerationService(AgricHubDbContext dbContext, ILogger<Review
     }
 
     public async Task<OperationResult> UpdateReportStatusAsync(int reportId, ReportStatus newStatus,
-        int moderatorUserId)
+        string moderatorUserId)
     {
         using var transaction = await _dbContext.Database.BeginTransactionAsync();
 

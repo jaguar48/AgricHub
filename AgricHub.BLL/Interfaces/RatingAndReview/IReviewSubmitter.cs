@@ -10,7 +10,7 @@ public interface IReviewSubmitter
     /// <summary>
     /// Submits a review for a consultant
     /// </summary>
-    Task<OperationResult<int>> SubmitReviewAsync(int consultantId, int userId, 
+    Task<OperationResult<int>> SubmitReviewAsync(int consultantId, string userId, 
         int rating, string? comment = null, int? consultationId = null);
 
     event Action<ReviewSubmittedEventArgs>? OnReviewSubmitted;

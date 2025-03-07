@@ -7,11 +7,11 @@ namespace AgricHub.BLL.Interfaces.RatingAndReview;
 
 public interface IReviewModeration
 {
-    Task<OperationResult<int>> FlagReviewAsync(int reviewId, int reportingUserId, 
+    Task<OperationResult<int>> FlagReviewAsync(int reviewId, string reportingUserId, 
         ReportReason reason, string? details = null);
         
     Task<OperationResult> UpdateReportStatusAsync(int reportId, ReportStatus newStatus,
-        int moderatorUserId);
+        string moderatorUserId);
         
     Task<PaginatedResult<ReviewReportResponse>> GetPendingReportsAsync(int pageSize = 50, 
         DateTime? olderThan = null);

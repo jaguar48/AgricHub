@@ -7,5 +7,5 @@ public interface IConsultationValidator
     /// <summary>
     /// Verifies if user had a consultation with consultant
     /// </summary>
-    Task<bool> HasCompletedConsultationAsync(int userId, int consultantId);
+    Task<bool> HasCompletedConsultationAsync(string userId, int consultantId);
 }

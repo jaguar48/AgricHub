@@ -17,7 +17,7 @@ public class ReviewReport
 
         [Required]
         [ForeignKey(nameof(ReportingUser))]
-        public int ReportingUserId { get; set; }
+        public required string ReportingUserId { get; set; }
 
         [Required]
         public ReportReason Reason { get; set; }
@@ -34,7 +34,7 @@ public class ReviewReport
         public DateTime? ResolvedAt { get; set; }
 
         [ForeignKey(nameof(ResolvedByUser))]
-        public int? ResolvedByUserId { get; set; }
+        public string? ResolvedByUserId { get; set; }
 
         // Navigation properties
         public virtual ConsultantReview? Review { get; set; }

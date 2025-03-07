@@ -9,22 +9,14 @@ namespace AgricHub.Presentation.Controllers
     [ApiController]
     public class ReviewAndRatingController : ControllerBase
     {
-         [HttpPost("rate")]
+        //  [HttpPost("rate")]
+
+        // [SwaggerOperation(Summary = "Rate ", Description = "Authenticate user and create token.")]
+        // [SwaggerResponse((int)HttpStatusCode.OK, "Token created successfully.")]
+        // [SwaggerResponse((int)HttpStatusCode.BadRequest, "Invalid user credentials.")]
+        // public async Task<IActionResult> Rate([FromBody] )
+        // {
         
-        [SwaggerOperation(Summary = "Rate Products", Description = "Authenticate user and create token.")]
-        [SwaggerResponse((int)HttpStatusCode.OK, "Token created successfully.")]
-        [SwaggerResponse((int)HttpStatusCode.BadRequest, "Invalid user credentials.")]
-        public async Task<IActionResult> Rate([FromBody] )
-        {
-            // var response = await _authentication.ValidateUser(user);
-
-
-            // if (!response.Success)
-            //     return BadRequest(response);
-
-            // return Ok(new { Token = await _authentication.CreateToken(), Role = response.Role });
-
-        }
-    }
+        // }
     }
 }

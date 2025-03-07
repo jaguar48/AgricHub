@@ -11,9 +11,9 @@ namespace AgricHub.DAL.Entities
     {
         public required string FirstName { get; set; }
         public required string LastName { get; set; }
-        public required string CountryId { get; set; }
-        public required string StateId { get; set; }
-        public required string Address { get; set; }
+        public string? CountryId { get; set; }
+        public string? StateId { get; set; }
+        public string? Address { get; set; }
         public string? VerificationToken { get; set; }
     }
 }

@@ -75,9 +75,17 @@ public class ConsultantProfileService(
         try
         {
             var query = _dbContext.ConsultantReviews
-                .Where(r => r.ConsultantId == consultantId && !r.IsHidden)
-                .Include(r => r.User)
-                .AsQueryable();
+            .Where(r => r.ConsultantId == consultantId && !r.IsHidden)
+            .Select(r => new ConsultantReviewResponse(
+                r.Id,
+                r.ConsultantId,
+                r.UserId,
+                r.Rating,
+                r.Comment,
+                r.CreatedDate,
+                r.ConsultationId
+            ))
+            .AsQueryable();
 
             // Apply sorting
             query = sortOrder switch

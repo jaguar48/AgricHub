@@ -8,6 +8,9 @@ namespace AgricHub.BLL.Helpers
 {
     public class EmailConfiguration
     {
+        public string? ApiKey { get; set; }
+        public string? SenderEmail { get; set; }
+
         public string? EmailFrom { get; set; }
         public string? SmtpHost { get; set; }
         public int SmtpPort { get; set; }
