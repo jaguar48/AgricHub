@@ -12,6 +12,5 @@ namespace AgricHub.DAL.Entities
         public int Id { get; set; }
         public string Name { get; set; }
         public ICollection<Business> Businesses { get; set; }
-
     }
 }
