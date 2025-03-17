@@ -3,6 +3,7 @@ using AgricHub.BLL.Implementations.AgrichubServices;
 using AgricHub.BLL.Implementations.RatingAndReview;
 using AgricHub.BLL.Implementations.UserServices;
 using AgricHub.BLL.Implementations.UserServices.UserServices;
+using AgricHub.BLL.Interfaces.AuthService;
 using AgricHub.BLL.Interfaces.IAgrichub_Services;
 using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.BLL.Interfaces.RatingAndReview;
@@ -72,6 +73,7 @@ namespace AgricHub.API.Extension
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
             })
             .AddJwtBearer(options =>
             {
@@ -86,6 +88,14 @@ namespace AgricHub.API.Extension
                     IssuerSigningKey = new SymmetricSecurityKey(secretKey)
                 };
             });
+
+            services.AddAuthentication()
+                .AddGoogle(options =>
+                {
+                    options.ClientId = config["Google:ClientId"];
+                    options.ClientSecret = config["Google:ClientSecret"];
+                    options.ClaimActions.MapJsonKey("picture", "picture", "url");
+                });
         }
         public static void ConfigureServices(this IServiceCollection services)
         {
@@ -109,6 +119,8 @@ namespace AgricHub.API.Extension
             services.AddScoped<IReviewRetriever, ReviewService>();
             services.AddScoped<IRatingCalculator, ConsultantProfileService>();
             services.AddScoped<IReviewModeration, ReviewModerationService>();
+
+            services.AddTransient<IExternalAuthProvider, GoogleAuthProvider>();
         }
 
     }

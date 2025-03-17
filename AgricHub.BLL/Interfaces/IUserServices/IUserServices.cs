@@ -1,5 +1,6 @@
 ﻿using AgricHub.DAL.Entities;
 using AgricHub.Shared.DTO_s.Request;
+using AgricHub.Shared.DTO_s.Request.AuthService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,9 @@ namespace AgricHub.BLL.Interfaces.IUserServices
     public interface IUserServices
     {
         Task<ApplicationUser> RegisterUser(UserForRegistrationRequest Request);
+
+        Task<ApplicationUser> FindOrCreateUserAsync(ExternalAuthInfo authInfo);
+        Task<ApplicationUser> GetCurrentUserAsync();
 
     }
 }

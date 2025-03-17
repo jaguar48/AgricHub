@@ -1,6 +1,8 @@
 ﻿using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.DAL.Entities;
 using AgricHub.Shared.DTO_s.Request;
+using AgricHub.Shared.DTO_s.Request.AuthService;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 namespace AgricHub.BLL.Implementations.UserServices
@@ -19,7 +21,49 @@ namespace AgricHub.BLL.Implementations.UserServices
             _userManager = userManager;
         }
 
+        public async Task<ApplicationUser> FindOrCreateUserAsync(ExternalAuthInfo authInfo)
+        {
+            var user = await _userManager.FindByLoginAsync(authInfo.Provider, authInfo.ProviderKey);
+            if (user != null) return user;
 
+            user = await _userManager.FindByEmailAsync(authInfo.Email);
+            if (user == null)
+            {
+                user = new ApplicationUser
+                {
+                    UserName = authInfo.Email,
+                    Email = authInfo.Email,
+                    FirstName = authInfo.Name,
+                    LastName = authInfo.Name,
+                    NormalizedUserName = authInfo.Name,
+                    // DisplayName = authInfo.Name,
+                    // ProfileImageUrl = authInfo.ProfileImageUrl,
+                    // ExternalLogins = new List<ExternalLogin>
+                    // {
+                    //     new ExternalLogin
+                    //     {
+                    //         Provider = authInfo.Provider,
+                    //         ProviderKey = authInfo.ProviderKey
+                    //     }
+                    // }
+                };
+
+                var result = await _userManager.CreateAsync(user);
+                if (!result.Succeeded) return null;
+            }
+
+            await _userManager.AddLoginAsync(user, new UserLoginInfo(
+                authInfo.Provider,
+                authInfo.ProviderKey,
+                authInfo.Provider));
+
+            return user;
+        }
+
+        public async Task<ApplicationUser> GetCurrentUserAsync()
+        {
+            return await _userManager.GetUserAsync(HttpContext.User);
+        }
 
         public async Task<ApplicationUser> RegisterUser(UserForRegistrationRequest Request)
         {

@@ -1,5 +1,6 @@
 ﻿using AgricHub.DAL.Entities;
 using AgricHub.Shared.DTO_s.Response;
+using AgricHub.Shared.DTO_s.Response.AuthService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,10 @@ namespace AgricHub.BLL.Interfaces.IUserServices
         public Task<bool> SendVerificationEmail(string email, string verificationToken);
         public Task<bool> ResetPassword(string email, string token, string newPassword);
         public Task<bool> SendPasswordResetEmail(string email, string resetToken);
+
+
+        Task<AuthResult> ExternalLoginAsync(string provider, string returnUrl = null);
+        Task<AuthResult> HandleExternalLoginCallbackAsync();
+        Task LogoutAsync();
     }
 }
