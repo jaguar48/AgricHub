@@ -1,11 +1,9 @@
 ﻿using AgricHub.BLL.Helpers;
-using AgricHub.BLL.Interfaces.AuthService;
 using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.Contracts;
 using AgricHub.DAL.Entities;
 using AgricHub.DAL.Entities.Models;
 using AgricHub.Shared.DTO_s.Response;
-using AgricHub.Shared.DTO_s.Response.AuthService;
 using Azure.Core;
 using Google.Apis.Auth;
 using GoogleApi.Entities.Search.Common;

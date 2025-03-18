@@ -1,8 +1,7 @@
 using System;
 using AgricHub.Shared.DTO_s.Request.AuthService;
-using AgricHub.Shared.DTO_s.Response.AuthService;
 
-namespace AgricHub.BLL.Interfaces.AuthService;
+namespace AgricHub.BLL.Implementations.UserServices;
 
 
 public interface IExternalAuthProvider

@@ -1,10 +1,8 @@
 using System;
 using System.Security.Claims;
-using AgricHub.BLL.Interfaces.AuthService;
 using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.DAL.Entities;
 using AgricHub.Shared.DTO_s.Request.AuthService;
-using AgricHub.Shared.DTO_s.Response.AuthService;
 using Microsoft.AspNetCore.Identity;
 
 

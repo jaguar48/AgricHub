@@ -3,7 +3,6 @@ using AgricHub.BLL.Implementations.AgrichubServices;
 using AgricHub.BLL.Implementations.RatingAndReview;
 using AgricHub.BLL.Implementations.UserServices;
 using AgricHub.BLL.Implementations.UserServices.UserServices;
-using AgricHub.BLL.Interfaces.AuthService;
 using AgricHub.BLL.Interfaces.IAgrichub_Services;
 using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.BLL.Interfaces.RatingAndReview;

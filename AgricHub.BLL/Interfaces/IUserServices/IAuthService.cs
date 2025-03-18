@@ -1,6 +1,6 @@
 ﻿using AgricHub.DAL.Entities;
 using AgricHub.Shared.DTO_s.Response;
-using AgricHub.Shared.DTO_s.Response.AuthService;
+using AgricHub.BLL.Implementations.UserServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;

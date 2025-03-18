@@ -1,21 +1,21 @@
 using AgricHub.DAL.Entities;
 using Microsoft.AspNetCore.Authentication;
 
-namespace AgricHub.Shared.DTO_s.Response.AuthService;
+namespace AgricHub.BLL.Implementations.UserServices;
 
 
 public record AuthResult(
-    bool Succeeded,
+    bool Succeeded = false,
+    AuthenticationProperties? Properties = null,
+    bool IsChallenge = false,
     ApplicationUser? User = null,
     string? Error = null,
     IEnumerable<string>? Errors = null,
-    AuthenticationProperties Properties,
-    string? Provider = null,
-    bool IsChallenge = false,
+    string? Provider = null
     )
 {
 
-    public static AuthResult Challenge(AuthenticationProperties properties, string provider) => new(IsChallenge: true, Properties: properties, Provider: provider  )
+    public static AuthResult Challenge(AuthenticationProperties properties, string provider) => new(IsChallenge: true, Properties: properties, Provider: provider);
 
     public static AuthResult Failure(string errorMessage) => new(false, Error: errorMessage);
 
