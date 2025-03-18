@@ -47,6 +47,9 @@ namespace AgricHub.Presentation.Controllers
 
 
         [HttpGet("google-login")]
+        [SwaggerOperation(Summary = "Initiate Google Login")]
+        [SwaggerResponse((int)HttpStatusCode.OK, "Google Login Initiated.")]
+        [SwaggerResponse((int)HttpStatusCode.BadRequest, "Invalid user credentials.")]
 
         public IActionResult Login(string? returnUrl = null)
         {
@@ -57,6 +60,9 @@ namespace AgricHub.Presentation.Controllers
 
 
         [HttpGet("externallogin")]
+        [SwaggerOperation(Summary = "Redirects to Google's login page")]
+        [SwaggerResponse((int)HttpStatusCode.OK, "Redirected to Google's login page.")]
+        [SwaggerResponse((int)HttpStatusCode.BadRequest, "Invalid user credentials.")]
         public async Task<IActionResult> ExternalLogin(string provider, string returnUrl)
         {
             // Generate the redirect URL for the callback
@@ -72,7 +78,7 @@ namespace AgricHub.Presentation.Controllers
             if (result.IsChallenge)
             {
                 // Redirect to the external provider's login page
-                return Challenge(result.Properties, result.Provider!);
+                return Challenge(result.Properties!, result.Provider!);
             }
 
             return BadRequest(new { Error = "Failed to initiate external login" });
@@ -80,6 +86,9 @@ namespace AgricHub.Presentation.Controllers
 
 
         [HttpGet("externallogincallback")]
+        [SwaggerOperation(Summary = "Google Login Callback")]
+        [SwaggerResponse((int)HttpStatusCode.OK, "Login Callback successful")]
+        [SwaggerResponse((int)HttpStatusCode.BadRequest, "Invalid user credentials.")]
         public async Task<IActionResult> ExternalLoginCallback()
         {
             var result = await _authentication.HandleExternalLoginCallbackAsync();
@@ -95,6 +104,9 @@ namespace AgricHub.Presentation.Controllers
 
         // POST: api/Account/logout
         [HttpPost("logout")]
+        [SwaggerOperation(Summary = "Logged out")]
+        [SwaggerResponse((int)HttpStatusCode.NoContent)]
+        [SwaggerResponse((int)HttpStatusCode.BadRequest, "Invalid user credentials.")]
         public async Task<IActionResult> Logout()
         {
             await _authentication.LogoutAsync();
