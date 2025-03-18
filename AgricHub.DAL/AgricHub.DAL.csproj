@@ -21,8 +21,8 @@
     </PackageReference>
   </ItemGroup>
 
-  <!-- <ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../AgricHub.Shared/AgricHub.Shared.csproj" />
-  </ItemGroup> -->
+  </ItemGroup>
 
 </Project>
