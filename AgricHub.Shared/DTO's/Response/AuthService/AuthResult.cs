@@ -8,12 +8,14 @@ public record AuthResult(
     bool Succeeded,
     ApplicationUser? User = null,
     string? Error = null,
-    IEnumerable<string>? Errors = null)
+    IEnumerable<string>? Errors = null,
+    AuthenticationProperties Properties,
+    string? Provider = null,
+    bool IsChallenge = false,
+    )
 {
-    public static AuthResult Challenge(AuthenticationProperties properties, string provider)
-    {
-        throw new NotImplementedException();
-    }
+
+    public static AuthResult Challenge(AuthenticationProperties properties, string provider) => new(IsChallenge: true, Properties: properties, Provider: provider  )
 
     public static AuthResult Failure(string errorMessage) => new(false, Error: errorMessage);
 

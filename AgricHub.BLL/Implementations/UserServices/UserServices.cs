@@ -38,6 +38,16 @@ namespace AgricHub.BLL.Implementations.UserServices
                     LastName = authInfo.Name ?? "",
                     Address = authInfo.Address,
                     NormalizedUserName = authInfo.Email,
+                    
+                    // might need this stuff below for more external logins
+                    //     ExternalLogins = new List<ExternalLogin>
+                    // {
+                    //     new ExternalLogin
+                    //     {
+                    //         Provider = authInfo.Provider,
+                    //         ProviderKey = authInfo.ProviderKey
+                    //     }
+                    // }
                 };
 
                 var result = await _userManager.CreateAsync(user);

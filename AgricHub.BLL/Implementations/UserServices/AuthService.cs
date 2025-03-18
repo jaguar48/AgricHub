@@ -26,7 +26,7 @@ namespace AgricHub.BLL.Implementations.UserServices
     public sealed class AuthService : IAuthService
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly IEnumerable<IExternalAuthProvider> _authProviders;
+        private readonly IExternalAuthProvider _authProvider;
         private readonly IUserServices _userService;
 
 
@@ -46,7 +46,7 @@ namespace AgricHub.BLL.Implementations.UserServices
         EmailConfiguration emailConfig,
         ILogger<AuthService> logger,
         SignInManager<ApplicationUser> signInManager,
-        IEnumerable<IExternalAuthProvider> authProviders,
+        IExternalAuthProvider authProvider,
         IUserServices userService)
         {
             _logger = logger;
@@ -57,7 +57,7 @@ namespace AgricHub.BLL.Implementations.UserServices
             _configuration = configuration;
 
             _signInManager = signInManager;
-            _authProviders = authProviders;
+            _authProvider = authProvider;
             _userService = userService;
         }
 
@@ -306,29 +306,54 @@ namespace AgricHub.BLL.Implementations.UserServices
             };
         }
 
-        public async Task<AuthResult> ExternalLoginAsync(string provider, string? returnUrl = null)
+        public Task<AuthResult> ExternalLoginAsync(string provider, string? redirectUrl = null)
         {
-            var redirectUrl = Url  .Action("ExternalLoginCallback", "Account", new { returnUrl });
+            try
+            {
+                // Validate the provider
+                if (string.IsNullOrWhiteSpace(provider))
+                {
+                    return Task.FromResult(AuthResult.Failure("Provider must be specified."));
+                }
 
-            var properties = _signInManager
-                .ConfigureExternalAuthenticationProperties(provider, redirectUrl);
 
-            return AuthResult.Challenge(properties, provider);
+                // Configure the authentication properties
+                var properties = _signInManager.ConfigureExternalAuthenticationProperties(
+                    provider,      // Authentication provider (e.g., "Google")
+                    redirectUrl    // URL to redirect to after authentication
+                );
+
+                // Return the challenge result
+                return Task.FromResult(AuthResult.Challenge(properties, provider));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initiating external login for provider: {Provider}", provider);
+                return Task.FromResult(AuthResult.Failure("An error occurred while initiating external login."));
+            }
         }
 
         public async Task<AuthResult> HandleExternalLoginCallbackAsync()
         {
-            var provider = _authProviders.FirstOrDefault(p =>
-                p.IsSupportedProvider(ExternalLoginDefaults.AuthenticationScheme));
+            try
+            {
 
-            if (provider == null)
-                return AuthResult.Failure("Unsupported provider");
+                var provider = _authProvider.IsSupportedProvider("Google");
 
-            var authInfo = await provider.GetExternalAuthInfoAsync();
-            if (authInfo == null)
-                return AuthResult.Failure("Error loading external login information");
+                if (provider == false)
+                    return AuthResult.Failure("Unsupported provider");
 
-            return await provider.ProcessExternalAuthAsync(authInfo);
+                var authInfo = await _authProvider.GetExternalAuthInfoAsync();
+                if (authInfo == null)
+                    return AuthResult.Failure("Error loading external login information");
+
+                return await _authProvider.ProcessExternalAuthAsync(authInfo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling external login callback.");
+                return AuthResult.Failure("An error occurred while processing your request.");
+            }
         }
 
         public async Task LogoutAsync()

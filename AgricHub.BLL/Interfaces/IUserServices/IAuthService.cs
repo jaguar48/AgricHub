@@ -21,7 +21,7 @@ namespace AgricHub.BLL.Interfaces.IUserServices
         public Task<bool> SendPasswordResetEmail(string email, string resetToken);
 
 
-        Task<AuthResult> ExternalLoginAsync(string provider, string returnUrl = null);
+        Task<AuthResult> ExternalLoginAsync(string provider, string? returnUrl = null);
         Task<AuthResult> HandleExternalLoginCallbackAsync();
         Task LogoutAsync();
     }
