@@ -6,6 +6,6 @@ public record ExternalAuthInfo(
     string Provider,
     string ProviderKey,
     string Email,
-    string Name,
-    string ProfileImageUrl,
+    string? Name,
+    string? Address,
     IEnumerable<Claim> Claims);

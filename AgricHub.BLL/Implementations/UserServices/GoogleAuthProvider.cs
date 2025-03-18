@@ -11,22 +11,16 @@ using Microsoft.AspNetCore.Identity;
 namespace AgricHub.BLL.Implementations.UserServices;
 
 // Services/Auth/GoogleAuthProvider.cs
-public class GoogleAuthProvider : IExternalAuthProvider
+public class GoogleAuthProvider(
+    SignInManager<ApplicationUser> signInManager,
+    IUserServices userService) : IExternalAuthProvider
 {
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly IUserServices _userService;
-
-    public GoogleAuthProvider(
-        SignInManager<ApplicationUser> signInManager,
-        IUserServices userService)
-    {
-        _signInManager = signInManager;
-        _userService = userService;
-    }
+    private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
+    private readonly IUserServices _userService = userService;
 
     public bool IsSupportedProvider(string provider) => provider == "Google";
 
-    public async Task<ExternalAuthInfo> GetExternalAuthInfoAsync()
+    public async Task<ExternalAuthInfo?> GetExternalAuthInfoAsync()
     {
         var info = await _signInManager.GetExternalLoginInfoAsync();
         if (info == null) return null;
@@ -34,9 +28,10 @@ public class GoogleAuthProvider : IExternalAuthProvider
         return new ExternalAuthInfo(
             info.LoginProvider,
             info.ProviderKey,
-            info.Principal.FindFirstValue(ClaimTypes.Email),
+            info.Principal.FindFirstValue(ClaimTypes.Email)!,
             info.Principal.FindFirstValue(ClaimTypes.Name),
-            info.Principal.FindFirstValue("urn:google:image"),
+            info.Principal.FindFirstValue(ClaimTypes.StreetAddress),
+            // info.Principal.FindFirstValue("urn:google:image"),
             info.Principal.Claims
         );
     }

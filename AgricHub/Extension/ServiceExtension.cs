@@ -67,6 +67,7 @@ namespace AgricHub.API.Extension
         public static void ConfigureJWT(this IServiceCollection services, IConfiguration configuration)
         {
             var jwtSettings = configuration.GetSection("JwtSettings");
+            var googleConfig = configuration.GetSection("GoogleAuth");
             var secretKey = Encoding.UTF8.GetBytes(jwtSettings["Secret"]);
 
             services.AddAuthentication(opt =>
@@ -92,9 +93,9 @@ namespace AgricHub.API.Extension
             services.AddAuthentication()
                 .AddGoogle(options =>
                 {
-                    options.ClientId = config["Google:ClientId"];
-                    options.ClientSecret = config["Google:ClientSecret"];
-                    options.ClaimActions.MapJsonKey("picture", "picture", "url");
+                    options.ClientId = googleConfig["Google:ClientId"]!;
+                    options.ClientSecret = googleConfig["Google:ClientSecret"]!;
+                    options.SignInScheme = IdentityConstants.ExternalScheme;
                 });
         }
         public static void ConfigureServices(this IServiceCollection services)

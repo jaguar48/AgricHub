@@ -1,13 +1,17 @@
 ﻿using AgricHub.BLL.Helpers;
+using AgricHub.BLL.Interfaces.AuthService;
 using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.Contracts;
 using AgricHub.DAL.Entities;
 using AgricHub.DAL.Entities.Models;
 using AgricHub.Shared.DTO_s.Response;
+using AgricHub.Shared.DTO_s.Response.AuthService;
 using Azure.Core;
 using Google.Apis.Auth;
+using GoogleApi.Entities.Search.Common;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using RestSharp.Authenticators;
 using SendGrid;
@@ -21,7 +25,12 @@ namespace AgricHub.BLL.Implementations.UserServices
 {
     public sealed class AuthService : IAuthService
     {
-        /*private readonly ILoggerManager _logger;*/
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IEnumerable<IExternalAuthProvider> _authProviders;
+        private readonly IUserServices _userService;
+
+
+        private readonly ILogger<AuthService> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private ApplicationUser? _user;
@@ -30,14 +39,26 @@ namespace AgricHub.BLL.Implementations.UserServices
         private readonly IRepository<Consultant> _consultantRepo;
 
 
-        public AuthService(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork, IConfiguration configuration, EmailConfiguration emailConfig)
+        public AuthService(
+        UserManager<ApplicationUser> userManager,
+        IUnitOfWork unitOfWork,
+        IConfiguration configuration,
+        EmailConfiguration emailConfig,
+        ILogger<AuthService> logger,
+        SignInManager<ApplicationUser> signInManager,
+        IEnumerable<IExternalAuthProvider> authProviders,
+        IUserServices userService)
         {
-            /*_logger = logger;*/
+            _logger = logger;
             _userManager = userManager;
             _unitOfWork = unitOfWork;
             _emailConfig = emailConfig;
             _consultantRepo = _unitOfWork.GetRepository<Consultant>();
             _configuration = configuration;
+
+            _signInManager = signInManager;
+            _authProviders = authProviders;
+            _userService = userService;
         }
 
 
@@ -155,11 +176,11 @@ namespace AgricHub.BLL.Implementations.UserServices
 
         }
 
-     
+
         private SigningCredentials GetSigningCredentials()
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"]);
+            var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
             var secret = new SymmetricSecurityKey(key);
             return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
         }
@@ -203,17 +224,10 @@ namespace AgricHub.BLL.Implementations.UserServices
         {
             var settings = new GoogleJsonWebSignature.ValidationSettings()
             {
-                Audience = new List<string>() { _configuration["Authentication:Google:ClientId"] }
+                Audience = [_configuration["GoogleAuth:ClientId"]]
             };
-            var payload = await GoogleJsonWebSignature.ValidateAsync(credential, settings);
-
-            if (payload == null)
-                throw new InvalidOperationException($"Invalid External Authentication.");
-
-            var info = new UserLoginInfo("GOOGLE", payload.Name, "GOOGLE");
-            if (info == null)
-                throw new InvalidOperationException($"NO INFO");
-
+            var payload = await GoogleJsonWebSignature.ValidateAsync(credential, settings) ?? throw new InvalidOperationException($"Invalid External Authentication.");
+            var info = new UserLoginInfo("GOOGLE", payload.Name, "GOOGLE") ?? throw new InvalidOperationException($"NO INFO");
             var user = await _userManager.FindByEmailAsync(payload.Email);
             if (user == null)
             {
@@ -225,13 +239,12 @@ namespace AgricHub.BLL.Implementations.UserServices
                     UserName = payload.Email,
                     FirstName = payload.GivenName,
                     LastName = payload.FamilyName,
+                    EmailConfirmed = true
                 };
-
-                newuser.EmailConfirmed = true;
 
                 var result = await _userManager.CreateAsync(newuser);
 
-                
+
 
                 var consultant = new Consultant
                 {
@@ -257,23 +270,20 @@ namespace AgricHub.BLL.Implementations.UserServices
                 return new AuthenticationResponse
                 {
                     JwtToken = jwttoken,
-                    
+
                     FullName = fullname,
                     TwoFactor = false,
                     IsExisting = false,
                 };
             }
 
-            var existuser = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-            if (existuser == null)
-                throw new InvalidOperationException($"User Does Not exist");
-
+            var existuser = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey) ?? throw new InvalidOperationException($"User Does Not exist");
             var jwtToken = await GenerateToken();
             var newUserFullname = $"{existuser.LastName} {existuser.FirstName}";
             return new AuthenticationResponse
             {
                 JwtToken = jwtToken,
-               
+
                 FullName = newUserFullname,
                 TwoFactor = false,
                 IsExisting = true
@@ -296,6 +306,34 @@ namespace AgricHub.BLL.Implementations.UserServices
             };
         }
 
+        public async Task<AuthResult> ExternalLoginAsync(string provider, string? returnUrl = null)
+        {
+            var redirectUrl = Url  .Action("ExternalLoginCallback", "Account", new { returnUrl });
 
+            var properties = _signInManager
+                .ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+
+            return AuthResult.Challenge(properties, provider);
+        }
+
+        public async Task<AuthResult> HandleExternalLoginCallbackAsync()
+        {
+            var provider = _authProviders.FirstOrDefault(p =>
+                p.IsSupportedProvider(ExternalLoginDefaults.AuthenticationScheme));
+
+            if (provider == null)
+                return AuthResult.Failure("Unsupported provider");
+
+            var authInfo = await provider.GetExternalAuthInfoAsync();
+            if (authInfo == null)
+                return AuthResult.Failure("Error loading external login information");
+
+            return await provider.ProcessExternalAuthAsync(authInfo);
+        }
+
+        public async Task LogoutAsync()
+        {
+            await _signInManager.SignOutAsync();
+        }
     }
 }

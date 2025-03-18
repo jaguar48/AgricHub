@@ -8,8 +8,6 @@ namespace AgricHub.BLL.Interfaces.AuthService;
 public interface IExternalAuthProvider
 {
     bool IsSupportedProvider(string provider);
-    Task<ExternalAuthInfo> GetExternalAuthInfoAsync();
+    Task<ExternalAuthInfo?> GetExternalAuthInfoAsync();
     Task<AuthResult> ProcessExternalAuthAsync(ExternalAuthInfo authInfo);
 }
-
-

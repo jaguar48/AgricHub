@@ -4,24 +4,25 @@ using AgricHub.Shared.DTO_s.Request;
 using AgricHub.Shared.DTO_s.Request.AuthService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace AgricHub.BLL.Implementations.UserServices
 {
     public sealed class UserService : IUserServices
     {
 
-        /*private readonly ILoggerManager _logger;*/
+        private readonly ILogger<UserService> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
 
 
 
-        public UserService(UserManager<ApplicationUser> userManager)
+        public UserService(UserManager<ApplicationUser> userManager, ILogger<UserService> logger)
         {
-            /*_logger = logger;*/
+            _logger = logger;
             _userManager = userManager;
         }
 
-        public async Task<ApplicationUser> FindOrCreateUserAsync(ExternalAuthInfo authInfo)
+        public async Task<ApplicationUser?> FindOrCreateUserAsync(ExternalAuthInfo authInfo)
         {
             var user = await _userManager.FindByLoginAsync(authInfo.Provider, authInfo.ProviderKey);
             if (user != null) return user;
@@ -33,19 +34,10 @@ namespace AgricHub.BLL.Implementations.UserServices
                 {
                     UserName = authInfo.Email,
                     Email = authInfo.Email,
-                    FirstName = authInfo.Name,
-                    LastName = authInfo.Name,
-                    NormalizedUserName = authInfo.Name,
-                    // DisplayName = authInfo.Name,
-                    // ProfileImageUrl = authInfo.ProfileImageUrl,
-                    // ExternalLogins = new List<ExternalLogin>
-                    // {
-                    //     new ExternalLogin
-                    //     {
-                    //         Provider = authInfo.Provider,
-                    //         ProviderKey = authInfo.ProviderKey
-                    //     }
-                    // }
+                    FirstName = authInfo.Name ?? "",
+                    LastName = authInfo.Name ?? "",
+                    Address = authInfo.Address,
+                    NormalizedUserName = authInfo.Email,
                 };
 
                 var result = await _userManager.CreateAsync(user);
@@ -58,11 +50,6 @@ namespace AgricHub.BLL.Implementations.UserServices
                 authInfo.Provider));
 
             return user;
-        }
-
-        public async Task<ApplicationUser> GetCurrentUserAsync()
-        {
-            return await _userManager.GetUserAsync(HttpContext.User);
         }
 
         public async Task<ApplicationUser> RegisterUser(UserForRegistrationRequest Request)

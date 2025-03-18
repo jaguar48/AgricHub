@@ -13,8 +13,6 @@ namespace AgricHub.BLL.Interfaces.IUserServices
     {
         Task<ApplicationUser> RegisterUser(UserForRegistrationRequest Request);
 
-        Task<ApplicationUser> FindOrCreateUserAsync(ExternalAuthInfo authInfo);
-        Task<ApplicationUser> GetCurrentUserAsync();
-
+        Task<ApplicationUser?> FindOrCreateUserAsync(ExternalAuthInfo authInfo);
     }
 }

@@ -44,5 +44,8 @@ namespace AgricHub.Presentation.Controllers
             return Ok(new { Token = await _authentication.CreateToken(), Role = response.Role });
 
         }
+
+
+        
     }
 }
