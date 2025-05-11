@@ -4,8 +4,10 @@ using AgricHub.Contracts;
 using AgricHub.DAL.Entities;
 using AgricHub.DAL.Entities.Models;
 using AgricHub.Shared.DTO_s.Request;
+using AgricHub.Shared.DTO_s.Response;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Security.Claims;
 
@@ -121,14 +123,14 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
        
         public async Task<string> UpdateServiceAsync(int serviceId, CreateServiceRequest serviceRequest)
         {
-            // Retrieve the existing service
+            
             var service = await _servicesRepo.GetSingleByAsync(s => s.Id == serviceId);
             if (service == null)
             {
                 throw new Exception("Service not found.");
             }
 
-            // Ensure the user is authorized to update the service
+           
             var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
             {
@@ -147,20 +149,20 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                 throw new UnauthorizedAccessException("You are not authorized to update this service for this business.");
             }
 
-            // Ensure the business is verified
+            
             if (!business.IsVerified)
             {
                 throw new Exception("Business not verified. Please verify before updating services.");
             }
 
-            // Update service fields
+            
             service.ServiceName = serviceRequest.ServiceName;
             service.Description = serviceRequest.Description;
             service.Price = serviceRequest.Price;
 
             if (serviceRequest.File != null && serviceRequest.File.Length > 0)
             {
-                // File validation: Check size (max 5MB) and type (jpg, jpeg, png)
+              
                 if (serviceRequest.File.Length > 5 * 1024 * 1024)
                 {
                     throw new Exception("File size exceeds the 5MB limit.");
@@ -200,6 +202,87 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
             await _unitOfWork.SaveChangesAsync();
 
             return JsonConvert.SerializeObject(new { success = true, message = "Service updated successfully." });
+        }
+      
+
+
+        public async Task<ViewServiceResponse> ViewServiceAsync(int serviceId)
+        {
+            var service = await _servicesRepo.GetSingleByAsync(s => s.Id == serviceId,
+                include: q => q.Include(s => s.Business));
+
+            if (service == null)
+            {
+                throw new Exception("Service not found.");
+            }
+
+            return _mapper.Map<ViewServiceResponse>(service);
+        }
+
+        public async Task<IEnumerable<ViewServiceResponse>> ViewAllServicesAsync()
+        {
+            var services = await _servicesRepo.GetAllAsync(include: q => q.Include(s => s.Business));
+
+            return _mapper.Map<IEnumerable<ViewServiceResponse>>(services);
+        }
+
+        public async Task<IEnumerable<ViewServiceResponse>> ViewOwnBusinessServicesAsync()
+        {
+            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                throw new UnauthorizedAccessException("User not found.");
+            }
+
+            var consultant = await _consultantRepo.GetSingleByAsync(c => c.UserId == userId);
+            if (consultant == null)
+            {
+                throw new UnauthorizedAccessException("Consultant not found.");
+            }
+
+            var business = await _businessRepo.GetSingleByAsync(b => b.ConsultantId == consultant.Id);
+            if (business == null)
+            {
+                throw new Exception("No business found for this user.");
+            }
+
+            var services = await _servicesRepo.GetAllAsync(s => s.BusinessId == business.Id,
+                include: q => q.Include(s => s.Business));
+
+            return _mapper.Map<IEnumerable<ViewServiceResponse>>(services);
+        }
+
+        public async Task<string> DeleteServiceAsync(int serviceId)
+        {
+            var service = await _servicesRepo.GetSingleByAsync(s => s.Id == serviceId);
+            if (service == null)
+            {
+                throw new Exception("Service not found.");
+            }
+
+            // Check if the user owns this service
+            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                throw new Exception("User not found.");
+            }
+
+            var consultant = await _consultantRepo.GetSingleByAsync(c => c.UserId == userId);
+            if (consultant == null)
+            {
+                throw new UnauthorizedAccessException("Consultant not found.");
+            }
+
+            var business = await _businessRepo.GetSingleByAsync(b => b.Id == service.BusinessId && b.ConsultantId == consultant.Id);
+            if (business == null)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to delete this service.");
+            }
+
+            _servicesRepo.Delete(service);
+            await _unitOfWork.SaveChangesAsync();
+
+            return JsonConvert.SerializeObject(new { success = true, message = "Service deleted successfully." });
         }
 
 

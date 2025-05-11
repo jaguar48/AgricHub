@@ -12,11 +12,11 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AgricHub.Presentation.Controllers
+namespace AgricHub.Presentation.Controllers.UserController
 {
     [ApiController]
     [Route("/api/agrichub/authentication")]
-    public class AuthController:ControllerBase
+    public class AuthController : ControllerBase
     {
         private readonly IAuthService _authentication;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -29,7 +29,7 @@ namespace AgricHub.Presentation.Controllers
 
 
         [HttpPost("login")]
-        
+
         [SwaggerOperation(Summary = "Authenticate user and create token", Description = "Authenticate user and create token.")]
         [SwaggerResponse((int)HttpStatusCode.OK, "Token created successfully.")]
         [SwaggerResponse((int)HttpStatusCode.BadRequest, "Invalid user credentials.")]
@@ -42,7 +42,7 @@ namespace AgricHub.Presentation.Controllers
             if (!response.Success)
                 return BadRequest(response);
 
-            return Ok(new { Token = await _authentication.CreateToken(), Role = response.Role });
+            return Ok(new { Token = await _authentication.CreateToken(), response.Role });
 
         }
     }

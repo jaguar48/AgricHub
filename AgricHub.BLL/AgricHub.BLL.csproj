@@ -20,4 +20,11 @@
     <ProjectReference Include="..\AgricHub.Shared\AgricHub.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Implementations\RatingServices\" />
+    <Folder Include="Implementations\ShopServices\" />
+    <Folder Include="Interfaces\IShopServices\" />
+    <Folder Include="Interfaces\IRatingServices\" />
+  </ItemGroup>
+
 </Project>

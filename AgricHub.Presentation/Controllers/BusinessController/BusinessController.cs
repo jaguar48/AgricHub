@@ -10,19 +10,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AgricHub.Presentation.Controllers
+namespace AgricHub.Presentation.Controllers.BusinessController
 {
     [ApiController]
     [Route("/api/agrichub/business")]
-    public class BusinessController:ControllerBase
+    public class BusinessController : ControllerBase
     {
         private readonly IBusiness_ConsultServices _business_ConsultServices;
-        
+
 
         public BusinessController(IBusiness_ConsultServices businessServices)
         {
             _business_ConsultServices = businessServices;
-          
+
 
         }
 
