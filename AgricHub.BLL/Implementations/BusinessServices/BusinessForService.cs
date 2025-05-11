@@ -191,10 +191,10 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                     await serviceRequest.File.CopyToAsync(stream);
                 }
 
-                service.ImagePath = dbPath;  // Update image path in the service
+                service.ImagePath = dbPath;  
             }
 
-            // Update the service's DateAdded field to current time
+            
             service.DateCreated = DateTime.UtcNow;
 
             // Save changes to the repository
