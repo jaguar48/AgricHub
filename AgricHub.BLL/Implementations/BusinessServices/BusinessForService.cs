@@ -260,7 +260,7 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                 throw new Exception("Service not found.");
             }
 
-            // Check if the user owns this service
+           
             var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
             {
