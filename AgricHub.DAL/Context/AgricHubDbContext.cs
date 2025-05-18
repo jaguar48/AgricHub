@@ -40,7 +40,10 @@ namespace AgricHub.DAL.Context
         public DbSet<Service> Services { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Business> Businesses { get; set; }
-        public DbSet<Category> categories { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Consultation > Consultations { get; set; }
+
+        public DbSet<Customer> Customers { get; set; }
 
     }
 }

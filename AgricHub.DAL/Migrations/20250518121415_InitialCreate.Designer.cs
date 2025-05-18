@@ -4,6 +4,7 @@ using AgricHub.DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AgricHub.DAL.Migrations
 {
     [DbContext(typeof(AgricHubDbContext))]
-    partial class AgricHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250518121415_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -202,37 +205,7 @@ namespace AgricHub.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("AgricHub.DAL.Entities.Consultation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("ConsultantId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ScheduledAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SendbirdChannelUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Consultations");
+                    b.ToTable("categories");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Models.Consultant", b =>
@@ -284,51 +257,6 @@ namespace AgricHub.DAL.Migrations
                     b.ToTable("Consultants");
                 });
 
-            modelBuilder.Entity("AgricHub.DAL.Entities.Models.Customer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CountryId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsVerified")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("StateId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Customers");
-                });
-
             modelBuilder.Entity("AgricHub.DAL.Entities.Service", b =>
                 {
                     b.Property<int>("Id")
@@ -378,10 +306,7 @@ namespace AgricHub.DAL.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(38,2)");
 
-                    b.Property<int?>("ConsultantId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CustomerId")
+                    b.Property<int>("ConsultantId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
@@ -395,8 +320,6 @@ namespace AgricHub.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ConsultantId");
-
-                    b.HasIndex("CustomerId");
 
                     b.ToTable("Wallets");
                 });
@@ -581,15 +504,6 @@ namespace AgricHub.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AgricHub.DAL.Entities.Models.Customer", b =>
-                {
-                    b.HasOne("AgricHub.DAL.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("AgricHub.DAL.Entities.Service", b =>
                 {
                     b.HasOne("AgricHub.DAL.Entities.Business", "Business")
@@ -603,17 +517,13 @@ namespace AgricHub.DAL.Migrations
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Wallet", b =>
                 {
-                    b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "Consultant")
+                    b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "consultant")
                         .WithMany()
-                        .HasForeignKey("ConsultantId");
+                        .HasForeignKey("ConsultantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("AgricHub.DAL.Entities.Models.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId");
-
-                    b.Navigation("Consultant");
-
-                    b.Navigation("Customer");
+                    b.Navigation("consultant");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

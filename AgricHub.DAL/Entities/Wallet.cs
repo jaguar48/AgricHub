@@ -12,13 +12,18 @@ namespace AgricHub.DAL.Entities
         [MaxLength(10), MinLength(10)]
         public string WalletNo { get; set; }
 
-        [ForeignKey(nameof(Consultant))]
-        public int ConsultantId { get; set; }
-
         [Column(TypeName = "decimal(38,2)")]
         public decimal Balance { get; set; }
         public bool IsActive { get; set; }
 
-        public virtual Consultant consultant { get; set; }
+        // Optional foreign keys
+        public int? ConsultantId { get; set; }
+        public int? CustomerId { get; set; }
+
+        [ForeignKey(nameof(ConsultantId))]
+        public virtual Consultant? Consultant { get; set; }
+
+        [ForeignKey(nameof(CustomerId))]
+        public virtual Customer? Customer { get; set; }
     }
 }

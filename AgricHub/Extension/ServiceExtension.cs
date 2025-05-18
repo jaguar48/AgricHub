@@ -1,8 +1,11 @@
 ﻿using AgricHub.BLL.Helpers;
 using AgricHub.BLL.Implementations.AgrichubServices;
+using AgricHub.BLL.Implementations.BusinessServices;
 using AgricHub.BLL.Implementations.UserServices;
 using AgricHub.BLL.Implementations.UserServices.UserServices;
+using AgricHub.BLL.Interfaces.ChatServices;
 using AgricHub.BLL.Interfaces.IAgrichub_Services;
+using AgricHub.BLL.Interfaces.IBusinessServices;
 using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.DAL;
 using AgricHub.DAL.Context;
@@ -101,6 +104,11 @@ namespace AgricHub.API.Extension
             services.AddScoped<IConsultantService, ConsultantService>();
             services.AddScoped<IBusiness_ConsultServices, BusinessConsultService>();
             services.AddScoped<IBusinessForService, BusinessForService>();
+            services.AddScoped<IConsultationService, ConsultationService >();
+            services.AddScoped<ISendbirdService, SendbirdService>();
+
+            services.AddScoped<ICustomerService, CustomerService >();
+
         }
 
     }
