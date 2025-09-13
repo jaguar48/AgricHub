@@ -46,12 +46,10 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                 throw new Exception("Image file is required.");
             }
 
-
             if (serviceRequest.File.Length > 5 * 1024 * 1024)
             {
                 throw new Exception("File size exceeds the 5MB limit.");
             }
-
 
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
             var fileExtension = Path.GetExtension(serviceRequest.File.FileName).ToLower();
@@ -83,13 +81,11 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                 throw new Exception("User not found.");
             }
 
-
             var consultant = await _consultantRepo.GetSingleByAsync(c => c.UserId == userId);
             if (consultant == null)
             {
                 throw new UnauthorizedAccessException("No consultant found for this user.");
             }
-
 
             var business = await _businessRepo.GetSingleByAsync(b => b.Id == serviceRequest.BusinessId && b.ConsultantId == consultant.Id);
             if (business == null)
@@ -97,40 +93,34 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                 throw new UnauthorizedAccessException("You are not authorized to add a service to this business.");
             }
 
-
-           /* if (!business.IsVerified)
+            // ✅ Validate category
+            var category = await _unitOfWork.GetRepository<Category>().GetByIdAsync(serviceRequest.CategoryId);
+            if (category == null)
             {
-                throw new Exception("This business is not verified. Please verify it before adding services.");
-            }*/
-
+                throw new Exception("Invalid Category ID.");
+            }
 
             var service = _mapper.Map<Service>(serviceRequest);
-
             service.ImagePath = dbPath;
             service.BusinessId = business.Id;
-            /*service.Business = business;*/
-
-
+            service.CategoryId = category.Id;  // ✅ Explicitly set category
             service.DateCreated = DateTime.UtcNow;
-
 
             await _servicesRepo.AddAsync(service);
             await _unitOfWork.SaveChangesAsync();
 
-
             return JsonConvert.SerializeObject(new { success = true, message = "Service created successfully." });
         }
-       
+
+
         public async Task<string> UpdateServiceAsync(int serviceId, CreateServiceRequest serviceRequest)
         {
-            
             var service = await _servicesRepo.GetSingleByAsync(s => s.Id == serviceId);
             if (service == null)
             {
                 throw new Exception("Service not found.");
             }
 
-           
             var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
             {
@@ -143,26 +133,26 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                 throw new UnauthorizedAccessException("Consultant not found.");
             }
 
-            var business = await _businessRepo.GetSingleByAsync(b => b.Id == serviceRequest.BusinessId && b.ConsultantId == consultant.Id);
+            var business = await _businessRepo.GetSingleByAsync(b => b.Id == service.BusinessId && b.ConsultantId == consultant.Id);
             if (business == null)
             {
-                throw new UnauthorizedAccessException("You are not authorized to update this service for this business.");
+                throw new UnauthorizedAccessException("You are not authorized to update this service.");
             }
 
-            
-            if (!business.IsVerified)
+            // ✅ Validate category change (if provided)
+            var category = await _unitOfWork.GetRepository<Category>().GetByIdAsync(serviceRequest.CategoryId);
+            if (category == null)
             {
-                throw new Exception("Business not verified. Please verify before updating services.");
+                throw new Exception("Invalid Category ID.");
             }
 
-            
             service.ServiceName = serviceRequest.ServiceName;
             service.Description = serviceRequest.Description;
             service.Price = serviceRequest.Price;
+            service.CategoryId = category.Id;  // ✅ Update category if changed
 
             if (serviceRequest.File != null && serviceRequest.File.Length > 0)
             {
-              
                 if (serviceRequest.File.Length > 5 * 1024 * 1024)
                 {
                     throw new Exception("File size exceeds the 5MB limit.");
@@ -191,19 +181,18 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                     await serviceRequest.File.CopyToAsync(stream);
                 }
 
-                service.ImagePath = dbPath;  
+                service.ImagePath = dbPath;
             }
 
-            
             service.DateCreated = DateTime.UtcNow;
 
-            // Save changes to the repository
             _servicesRepo.Update(service);
             await _unitOfWork.SaveChangesAsync();
 
             return JsonConvert.SerializeObject(new { success = true, message = "Service updated successfully." });
         }
-      
+
+
 
 
         public async Task<ViewServiceResponse> ViewServiceAsync(int serviceId)

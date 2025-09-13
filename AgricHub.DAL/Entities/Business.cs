@@ -20,15 +20,14 @@ namespace AgricHub.DAL.Entities
         public bool IsVerified { get; set; } = false;
         public string Address { get; set; }
         public string? ImagePath { get; set; }
-        public Category Category { get; set; }
-        public int CategoryId { get; set; }
+       
 
         public Consultant consultant { get; set; }
 
         public int ConsultantId { get; set; }
         public DateTime DateCreated { get; set; } = new DateTime();
 
-        public virtual ICollection<BusinessReview> BusinessReview { get; set; }
+       
 
     }
 }

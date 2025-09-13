@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AgricHub.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class updated : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -57,7 +57,7 @@ namespace AgricHub.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "categories",
+                name: "Categories",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -66,7 +66,7 @@ namespace AgricHub.DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_categories", x => x.Id);
+                    table.PrimaryKey("PK_Categories", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -203,6 +203,32 @@ namespace AgricHub.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Customers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CountryId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsVerified = table.Column<bool>(type: "bit", nullable: false),
+                    StateId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Customers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Customers_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Businesses",
                 columns: table => new
                 {
@@ -221,17 +247,17 @@ namespace AgricHub.DAL.Migrations
                 {
                     table.PrimaryKey("PK_Businesses", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Businesses_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Businesses_Consultants_ConsultantId",
                         column: x => x.ConsultantId,
                         principalTable: "Consultants",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Businesses_categories_CategoryId",
-                        column: x => x.CategoryId,
-                        principalTable: "categories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -241,9 +267,10 @@ namespace AgricHub.DAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     WalletNo = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    ConsultantId = table.Column<int>(type: "int", nullable: false),
                     Balance = table.Column<decimal>(type: "decimal(38,2)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    ConsultantId = table.Column<int>(type: "int", nullable: true),
+                    CustomerId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -252,37 +279,12 @@ namespace AgricHub.DAL.Migrations
                         name: "FK_Wallets_Consultants_ConsultantId",
                         column: x => x.ConsultantId,
                         principalTable: "Consultants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "BusinessReview",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Rating = table.Column<int>(type: "int", nullable: false),
-                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    BusinessId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BusinessReview", x => x.Id);
+                        principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_BusinessReview_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_BusinessReview_Businesses_BusinessId",
-                        column: x => x.BusinessId,
-                        principalTable: "Businesses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_Wallets_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -297,7 +299,7 @@ namespace AgricHub.DAL.Migrations
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BusinessId = table.Column<int>(type: "int", nullable: false),
-                    DateAdded = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -308,6 +310,86 @@ namespace AgricHub.DAL.Migrations
                         principalTable: "Businesses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Consultations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CustomerId = table.Column<int>(type: "int", nullable: false),
+                    ConsultantId = table.Column<int>(type: "int", nullable: false),
+                    ServiceId = table.Column<int>(type: "int", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ScheduledAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SendbirdChannelUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Consultations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Consultations_Consultants_ConsultantId",
+                        column: x => x.ConsultantId,
+                        principalTable: "Consultants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Consultations_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Consultations_Services_ServiceId",
+                        column: x => x.ServiceId,
+                        principalTable: "Services",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reviews",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ConsultationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CustomerId = table.Column<int>(type: "int", nullable: false),
+                    ConsultantId = table.Column<int>(type: "int", nullable: false),
+                    ServiceId = table.Column<int>(type: "int", nullable: true),
+                    Rating = table.Column<int>(type: "int", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reviews", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Consultants_ConsultantId",
+                        column: x => x.ConsultantId,
+                        principalTable: "Consultants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Consultations_ConsultationId",
+                        column: x => x.ConsultationId,
+                        principalTable: "Consultations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Services_ServiceId",
+                        column: x => x.ServiceId,
+                        principalTable: "Services",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateIndex(
@@ -360,19 +442,50 @@ namespace AgricHub.DAL.Migrations
                 column: "ConsultantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BusinessReview_BusinessId",
-                table: "BusinessReview",
-                column: "BusinessId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BusinessReview_UserId",
-                table: "BusinessReview",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Consultants_UserId",
                 table: "Consultants",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Consultations_ConsultantId",
+                table: "Consultations",
+                column: "ConsultantId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Consultations_CustomerId",
+                table: "Consultations",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Consultations_ServiceId",
+                table: "Consultations",
+                column: "ServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Customers_UserId",
+                table: "Customers",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_ConsultantId",
+                table: "Reviews",
+                column: "ConsultantId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_ConsultationId",
+                table: "Reviews",
+                column: "ConsultationId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_CustomerId",
+                table: "Reviews",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_ServiceId",
+                table: "Reviews",
+                column: "ServiceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Services_BusinessId",
@@ -383,6 +496,11 @@ namespace AgricHub.DAL.Migrations
                 name: "IX_Wallets_ConsultantId",
                 table: "Wallets",
                 column: "ConsultantId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Wallets_CustomerId",
+                table: "Wallets",
+                column: "CustomerId");
         }
 
         /// <inheritdoc />
@@ -404,10 +522,7 @@ namespace AgricHub.DAL.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "BusinessReview");
-
-            migrationBuilder.DropTable(
-                name: "Services");
+                name: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "Wallets");
@@ -416,13 +531,22 @@ namespace AgricHub.DAL.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "Consultations");
+
+            migrationBuilder.DropTable(
+                name: "Customers");
+
+            migrationBuilder.DropTable(
+                name: "Services");
+
+            migrationBuilder.DropTable(
                 name: "Businesses");
 
             migrationBuilder.DropTable(
-                name: "Consultants");
+                name: "Categories");
 
             migrationBuilder.DropTable(
-                name: "categories");
+                name: "Consultants");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

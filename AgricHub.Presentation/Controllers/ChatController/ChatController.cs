@@ -1,58 +1,89 @@
-﻿using AgricHub.BLL.Interfaces.ChatServices;
+﻿using AgricHub.BLL.Interfaces;
+using AgricHub.BLL.Interfaces.IAgrichub_Services;
+using AgricHub.BLL.Interfaces.IChatServices;
+using AgricHub.Shared.DTO_s.Request;
+using AgricHub.Shared.DTO_s.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System;
-using System.Threading.Tasks;
 
-namespace AgricHub.Presentation.Controllers
+namespace AgricHub.API.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class ChatController : ControllerBase
     {
-        private readonly ISendbirdService _sendbirdService;
+        private readonly IChatService _chatService;
 
-        public ChatController(ISendbirdService sendbirdService)
+        public ChatController(IChatService chatService)
         {
-            _sendbirdService = sendbirdService;
+            _chatService = chatService;
         }
 
-        [HttpPost("create-channel")]
-        public async Task<IActionResult> CreateChannel([FromBody] ChannelRequest request)
+        [HttpPost("initiate")]
+        
+        public async Task<IActionResult> InitiateChat([FromBody] InitiateChatRequest request)
         {
-            try
-            {
-                // Create the Sendbird group channel
-                var channelUrl = await _sendbirdService.CreateGroupChannelAsync(
-                    request.AgropreneurId,
-                    request.ConsultantId
-                );
-
+           
+                var channelUrl = await _chatService.InitiateChatAsync(request.ConsultantUserId, request.ServiceId);
                 return Ok(new { success = true, channelUrl });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+           
         }
-        [HttpPost("create-sendbird-user")]
-        public async Task<IActionResult> CreateSendbirdUser()
+
+        //[HttpPost("create-channel")]
+        //[Authorize(Roles = "Customer")]
+        //public async Task<IActionResult> CreateChannel([FromBody] InitiateChatRequest request)
+        //{
+        //    try
+        //    {
+        //        var channelUrl = await _chatService.CreateChannelAsync(request.ConsultantUserId);
+        //        return Ok(new { success = true, channelUrl });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { success = false, message = ex.Message });
+        //    }
+        //}
+
+        //[HttpPost("create-sendbird-user")]
+        //[Authorize(Roles = "Customer,Consultant")]
+        //public async Task<IActionResult> CreateSendbirdUser()
+        //{
+        //    try
+        //    {
+        //        var result = await _chatService.CreateSendbirdUserAsync();
+        //        return Ok(new { success = true, user = JsonConvert.DeserializeObject<object>(result) });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { success = false, message = ex.Message });
+        //    }
+        //}
+
+        [HttpGet("my-chats")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> GetMyChats()
+        {
+           
+                var chats = await _chatService.GetMyChatsAsync();
+                return Ok(new { success = true, chats });
+           
+          
+        }
+
+        [HttpGet("consultant-chats")]
+        [Authorize(Roles = "Consultant")]
+        public async Task<IActionResult> GetConsultantChats()
         {
             try
             {
-                var result = await _sendbirdService.CreateSendbirdUserAsync();
-                return Ok(new { success = true, user = JsonConvert.DeserializeObject<object>(result) });
+                var chats = await _chatService.GetConsultantChatsAsync();
+                return Ok(new { success = true, chats });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
-        }
-
-        public class ChannelRequest
-        {
-            public string AgropreneurId { get; set; }
-            public string ConsultantId { get; set; }
         }
     }
 }

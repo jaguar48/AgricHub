@@ -18,9 +18,7 @@ namespace AgricHub.Shared.DTO_s.Request
         public string Description { get; set; }
 
         public string Address { get; set; }
-      
-       
-        public int CategoryId { get; set; }
+     
 
         public IFormFile? File { get; set; }
         public DateTime DateCreated { get; set; } = new DateTime();

@@ -7,6 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Implementations\RatingServices\**" />
+    <Compile Remove="Implementations\ShopServices\**" />
+    <EmbeddedResource Remove="Implementations\RatingServices\**" />
+    <EmbeddedResource Remove="Implementations\ShopServices\**" />
+    <None Remove="Implementations\RatingServices\**" />
+    <None Remove="Implementations\ShopServices\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="Google.Apis.Auth" Version="1.62.1" />
     <PackageReference Include="GoogleApi" Version="5.2.1" />
@@ -21,10 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Implementations\RatingServices\" />
-    <Folder Include="Implementations\ShopServices\" />
     <Folder Include="Interfaces\IShopServices\" />
-    <Folder Include="Interfaces\IRatingServices\" />
   </ItemGroup>
 
 </Project>

@@ -96,14 +96,7 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
             business.ConsultantId = consultant.Id;
 
             // Check if the category exists
-            var category = await _categoryRepo.GetByIdAsync(businessRequest.CategoryId);
-            if (category == null)
-            {
-                throw new Exception("Invalid Category ID.");
-            }
-
-            business.Category = category;
-
+          
            
             business.DateCreated = DateTime.UtcNow;
 
