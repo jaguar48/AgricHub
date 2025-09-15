@@ -1,5 +1,6 @@
 ﻿using AgricHub.BLL.Interfaces.IBusinessServices;
 using AgricHub.Shared.DTO_s.Request;
+using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,8 +22,20 @@ namespace AgricHub.Presentation.Controllers.BusinessController
         [HttpPost("book")]
         public async Task<IActionResult> BookConsultation([FromBody] ConsultationBookingRequest dto)
         {
-            var result = await _consultationService.BookConsultationAsync(dto);
-            return Ok(result);
+           
+
+            try
+            {
+                var result = await _consultationService.BookConsultationAsync(dto);
+                
+                return Ok(new { success = true, result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+
+
         }
 
         // ✅ Consultant: Approve

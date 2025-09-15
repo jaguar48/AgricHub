@@ -1,4 +1,5 @@
-﻿using AgricHub.Shared.DTO_s.Response;
+﻿using AgricHub.Shared.DTO_s.Request;
+using AgricHub.Shared.DTO_s.Response;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,12 @@ namespace AgricHub.BLL.Interfaces.IChatServices
     
         public interface IChatService
         {
-            Task<string> InitiateChatAsync(string consultantUserId, int? serviceId = null);
-            Task<IEnumerable<ChatSessionResponse>> GetMyChatsAsync();
-            Task<IEnumerable<ChatSessionResponse>> GetConsultantChatsAsync();
-        }
+        Task<string> InitiateChatAsync(InitiateChatRequest request);
+        Task<IEnumerable<ChatSessionResponse>> GetMyChatsAsync();
+        Task<IEnumerable<ChatSessionResponse>> GetConsultantChatsAsync();
+        Task<CustomOfferResponse> CreateCustomOfferAsync(CustomOfferRequest request);
+        Task<CustomOfferResponse> AcceptCustomOfferAsync(Guid offerId);
+        Task<CustomOfferResponse> RejectCustomOfferAsync(Guid offerId, string reason);
+    }
    
 }

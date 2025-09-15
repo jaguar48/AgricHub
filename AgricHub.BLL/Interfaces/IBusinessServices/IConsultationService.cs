@@ -6,7 +6,7 @@ namespace AgricHub.BLL.Interfaces.IBusinessServices
 {
     public interface IConsultationService
     {
-        Task<Consultation> BookConsultationAsync(ConsultationBookingRequest dto);
+        Task<ConsultationResponse> BookConsultationAsync(ConsultationBookingRequest dto);
 
         Task<ConsultationResponse> ApproveConsultationAsync(Guid consultationId, string? notes = null);
         Task<ConsultationResponse> RejectConsultationAsync(Guid consultationId, string reason);

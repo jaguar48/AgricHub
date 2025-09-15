@@ -10,23 +10,20 @@ namespace AgricHub.DAL.Entities
 
     public class Consultation
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-
+        public Guid Id { get; set; }
         public int CustomerId { get; set; }
-        public Customer Customer { get; set; }   // ✅ Navigation
-
+        public Customer Customer { get; set; }
         public int ConsultantId { get; set; }
-        public Consultant Consultant { get; set; }  // ✅ Navigation
-
-        public int? ServiceId { get; set; }
-        public Service Service { get; set; }    // ✅ Navigation
-
-        public string? Notes { get; set; }
-
-        public DateTime ScheduledAt { get; set; }
-        public string Status { get; set; } = "Pending";
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public Consultant Consultant { get; set; }
+        public int ServiceId { get; set; }
+        public Service Service { get; set; }
+        public int? ServicePackageId { get; set; } // New field
+        public ServicePackage ServicePackage { get; set; }
         public string? SendbirdChannelUrl { get; set; }
+        public string Status { get; set; } // e.g., Pending, Approved, In Progress, Completed, Rejected, Cancelled
+        public DateTime ScheduledAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string? Notes { get; set; }
     }
 
 

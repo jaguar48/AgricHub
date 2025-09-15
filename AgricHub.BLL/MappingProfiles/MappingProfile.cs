@@ -21,6 +21,9 @@ namespace AgricHub.BLL.MappingProfiles
             CreateMap<Service, ViewServiceResponse>()
                 .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.Business.BusinessName));
 
+            CreateMap<ServicePackageRequest, ServicePackage>();
+            CreateMap<ServicePackage, ServicePackageResponse>();
+
             // ✅ Business
             CreateMap<CreateBusinessRequest, Business>();
             CreateMap<Business, CreateBusinessRequest>();
@@ -61,7 +64,9 @@ namespace AgricHub.BLL.MappingProfiles
      .ForMember(dest => dest.ServiceName,
          opt => opt.MapFrom(src => src.Service != null ? src.Service.ServiceName : null));
 
-
+            CreateMap<CustomOfferRequest, CustomOffer>();
+            CreateMap<CustomOffer, CustomOfferResponse>()
+                .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.Service.ServiceName));
         }
 
 

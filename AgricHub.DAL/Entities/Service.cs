@@ -6,21 +6,22 @@ using System.Threading.Tasks;
 
 namespace AgricHub.DAL.Entities
 {
+   
+
     public class Service
     {
         public int Id { get; set; }
-        public string ServiceName { get; set; } 
+        public string ServiceName { get; set; }
         public string Description { get; set; }
-        public decimal Price { get; set; } 
+        public decimal Price { get; set; } // Retained for backward compatibility
         public bool IsAvailable { get; set; } = true;
-        public Category Category { get; set; }
         public int CategoryId { get; set; }
+        public Category Category { get; set; }
         public string? ImagePath { get; set; }
-
         public int BusinessId { get; set; }
         public virtual Business Business { get; set; }
-
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
+        public virtual ICollection<ServicePackage> Packages { get; set; } = new List<ServicePackage>();
     }
 
 }

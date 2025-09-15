@@ -12,7 +12,7 @@ namespace AgricHub.DAL.Entities
         public Guid Id { get; set; }
         public int CustomerId { get; set; }
         public int ConsultantId { get; set; }
-        public int? ServiceId { get; set; } // Optional, links to a specific service
+        public int? ServiceId { get; set; } 
         public string SendbirdChannelUrl { get; set; }
         public DateTime CreatedAt { get; set; }
         public Customer Customer { get; set; }
