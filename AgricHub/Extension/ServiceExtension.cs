@@ -3,18 +3,22 @@ using AgricHub.BLL.Implementations;
 using AgricHub.BLL.Implementations.AgrichubServices;
 using AgricHub.BLL.Implementations.BusinessServices;
 using AgricHub.BLL.Implementations.ChatServices;
+using AgricHub.BLL.Implementations.PaystackService;
 using AgricHub.BLL.Implementations.ReviewServices;
 using AgricHub.BLL.Implementations.UserServices;
 using AgricHub.BLL.Implementations.UserServices.UserServices;
+using AgricHub.BLL.Implementations.WalletService;
 using AgricHub.BLL.Interfaces.ChatServices;
 using AgricHub.BLL.Interfaces.IAgrichub_Services;
 using AgricHub.BLL.Interfaces.IBusinessServices;
 using AgricHub.BLL.Interfaces.IChatServices;
+using AgricHub.BLL.Interfaces.IPaystackService;
 using AgricHub.BLL.Interfaces.IRatingServices;
 using AgricHub.BLL.Interfaces.IUserServices;
+using AgricHub.BLL.Interfaces.IWalletService;
+using AgricHub.Contracts;
 using AgricHub.DAL;
 using AgricHub.DAL.Context;
-
 using AgricHub.DAL.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
@@ -29,31 +33,29 @@ namespace AgricHub.API.Extension
 {
     public static class ServiceExtension
     {
-        
         public static void ConfigureCors(this IServiceCollection services) =>
-        services.AddCors(options =>
-        {
-            options.AddPolicy("CorsPolicy", builder =>
-            builder.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader());
-        });
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy", builder =>
+                    builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
+            });
+
         public static void ConfigureEmail(this IServiceCollection services, IConfiguration configuration)
         {
-
-            services.Configure<EmailConfiguration >(options => configuration.GetSection("EmailSettings").Bind(options));
+            services.Configure<EmailConfiguration>(options => configuration.GetSection("EmailSettings").Bind(options));
             services.AddScoped<EmailConfiguration>();
         }
 
         public static void ConfigureIISIntegration(this IServiceCollection services) =>
-        services.Configure<IISOptions>(options =>
-        {
-
-        });
+            services.Configure<IISOptions>(options =>
+            {
+            });
 
         public static void ConfigureSqlContext(this IServiceCollection services, IConfiguration configuration) =>
-        services.AddDbContext<AgricHubDbContext>(opts =>
-        opts.UseSqlServer(configuration.GetConnectionString("sqlConnection")));
+            services.AddDbContext<AgricHubDbContext>(opts =>
+                opts.UseSqlServer(configuration.GetConnectionString("sqlConnection")));
 
         public static void ConfigureIdentity(this IServiceCollection services)
         {
@@ -94,32 +96,38 @@ namespace AgricHub.API.Extension
                 };
             });
         }
+
         public static void ConfigureServices(this IServiceCollection services)
         {
-            services.Configure<FormOptions>(options =>
-            {
-                options.ValueLengthLimit = int.MaxValue;
-                options.MultipartBodyLengthLimit = int.MaxValue;
-                options.MemoryBufferThreshold = int.MaxValue;
-            });
-            services.AddScoped<IUserServices , UserService >();
-
-            
-
+            // ✅ Auth & User Services (MISSING - causes the error!)
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUserServices, UserService>();
+            services.AddScoped<ICustomerService, CustomerService>();
             services.AddScoped<IConsultantService, ConsultantService>();
-            services.AddScoped<IBusiness_ConsultServices, BusinessConsultService>();
+
+            // Profile Services
+            services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+            services.AddScoped<IConsultantProfileService, ConsultantProfileService>();
+
+            // Business Services
             services.AddScoped<IBusinessForService, BusinessForService>();
-            services.AddScoped<IConsultationService, ConsultationService >();
+            services.AddScoped<IConsultationService, ConsultationService>();
+
+            // Chat Services
+            services.AddScoped<IChatService, ChatService>();
             services.AddScoped<ISendbirdService, SendbirdService>();
 
-            services.AddScoped<ICustomerService, CustomerService >();
+            // Review Services
             services.AddScoped<IReviewService, ReviewService>();
 
+            // Wallet Services
+            services.AddScoped<IWalletService, WalletService>();
 
-            services.AddScoped<IChatService, ChatService>();
+            // Payment Services (HttpClient for Paystack)
+            services.AddHttpClient<IPaystackService, PaystackService>();
 
+            // Repository (Generic)
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         }
-
     }
 }

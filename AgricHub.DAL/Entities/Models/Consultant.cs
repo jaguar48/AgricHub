@@ -1,26 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AgricHub.DAL.Entities.Models
 {
     public class Consultant
     {
-       
         public int Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string BusinessName { get; set; }
         public string Email { get; set; }
         public string? PhoneNumber { get; set; }
-        public string ? UserId { get; set; }
-        public string ? CountryId { get; set; }
+        public string? UserId { get; set; }
+        public string? BusinessName { get; set; }
+      
+        public string? Address { get; set; }
+      
+        public string? CountryId { get; set; }
+      
+        public string? StateId { get; set; }
+
         public bool IsVerified { get; set; } = false;
-        public string ? StateId { get; set; }
-        public string ? Address { get; set; }
-        public ApplicationUser User { get; set; }
+        public int? NoShowCount { get; set; } = 0;
+        public string? SendbirdChannelUrl { get; set; }
+        public string? AvatarUrl { get; set; }
+
+        // Bank details for payouts
+        public string? BankName { get; set; }
+        public string? BankCode { get; set; }
+        public string? AccountNumber { get; set; }
+        public string? AccountName { get; set; }
+        public string? PaystackRecipientCode { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Navigation properties
+        public virtual Wallet? Wallet { get; set; }
+        public virtual ICollection<WalletTransaction> WalletTransactions { get; set; } = new List<WalletTransaction>();
+        public virtual ICollection<Consultation> Consultations { get; set; } = new List<Consultation>();
+        public virtual ICollection<Business> Businesses { get; set; } = new List<Business>();
     }
 }

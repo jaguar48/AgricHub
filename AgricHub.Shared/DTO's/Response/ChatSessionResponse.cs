@@ -24,4 +24,13 @@ namespace AgricHub.Shared.DTO_s.Response
     }
 
 
+    public class ChatInitiateResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public string ChannelUrl { get; set; }
+        public string ChatSessionId { get; set; }  // ← ADD THIS PROPERTY!
+    }
 }
+
+

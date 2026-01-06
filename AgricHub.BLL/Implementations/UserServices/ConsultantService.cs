@@ -6,27 +6,26 @@ using AgricHub.DAL.Entities.Models;
 using AgricHub.Shared.DTO_s.Request;
 using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json;
-
+using System;
+using System.Threading.Tasks;
 
 namespace AgricHub.BLL.Implementations.UserServices.UserServices
 {
-
     public sealed class ConsultantService : IConsultantService
     {
-
         private readonly IRepository<Consultant> _consultantRepo;
+        private readonly IRepository<Wallet> _walletRepo;
         private readonly IUnitOfWork _unitOfWork;
-        /*private readonly ILoggerManager _logger;*/
         private readonly IUserServices _userServices;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAuthService _authService;
 
-        private readonly IRepository<Wallet> _walletRepo;
-
-
-        public ConsultantService(IAuthService authService, IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IUserServices userServices)
+        public ConsultantService(
+            IAuthService authService,
+            IUnitOfWork unitOfWork,
+            UserManager<ApplicationUser> userManager,
+            IUserServices userServices)
         {
-            /*_logger = logger;*/
             _unitOfWork = unitOfWork;
             _userManager = userManager;
             _authService = authService;
@@ -35,75 +34,87 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
             _walletRepo = _unitOfWork.GetRepository<Wallet>();
         }
 
-
         public async Task<string> RegisterConsultant(ConsultantRegistrationRequest request)
         {
-            
-            /* _logger.LogInfo("Creating the Seller as a user first, before assigning the seller role to them and adding them to the Sellers table.");*/
-            
-            var user = await _userServices.RegisterUser(new UserForRegistrationRequest
+            await using var transaction = await _unitOfWork.BeginTransactionAsync();
+
+            try
             {
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Email = request.Email,
-                Password = request.Password,
-                UserName = request.UserName,
-                CountryId = request.CountryId,
-                StateId = request.StateId,
-                Address = request.Address
-            });
-           
+                // 1️⃣ Create the Application User
+                var user = await _userServices.RegisterUser(new UserForRegistrationRequest
+                {
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Email = request.Email,
+                    Password = request.Password,
+                    UserName = request.UserName,
+                    CountryId = request.CountryId,
+                    StateId = request.StateId,
+                    Address = request.Address
+                });
 
-            await _userManager.AddToRoleAsync(user, "Consultant");
+                await _userManager.AddToRoleAsync(user, "Consultant");
 
-            var consultant = new Consultant
-            {
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                PhoneNumber = request.PhoneNumber,
-                Email = request.Email,
-                BusinessName = request.BusinessName,
-                CountryId = request.CountryId,
-                StateId = request.StateId,
-                Address = request.Address ,
-                UserId = user.Id
-            };
+                // 2️⃣ Create Consultant profile
+                var consultant = new Consultant
+                {
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    PhoneNumber = request.PhoneNumber,
+                    Email = request.Email,
+                    BusinessName = request.BusinessName,
+                    CountryId = request.CountryId,
+                    StateId = request.StateId,
+                    Address = request.Address,
+                    UserId = user.Id
+                };
 
-            await _consultantRepo.AddAsync(consultant);
-            await CreateCustomerAccount(consultant);
+                await _consultantRepo.AddAsync(consultant);
 
-            /* var verificationToken = Guid.NewGuid().ToString();
-             var emailSent = await _authService.SendVerificationEmail(request.Email, verificationToken);*/
+                // 3️⃣ Create Wallet for Consultant
+                await CreateConsultantWalletAsync(consultant);
 
-            /* if (emailSent)
-             {
+                // 4️⃣ Save all changes together
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
 
-                 user.VerificationToken = verificationToken;
-                 await _userManager.UpdateAsync(user);
- */
-            
+                // 5️⃣ Optional: send email verification
+                // var verificationToken = Guid.NewGuid().ToString();
+                // var emailSent = await _authService.SendVerificationEmail(request.Email, verificationToken);
+                // if (emailSent)
+                // {
+                //     user.VerificationToken = verificationToken;
+                //     await _userManager.UpdateAsync(user);
+                // }
 
-                var result = new { success = true, message = "Registration Successful! Please check your email for the verification link." };
+                var result = new
+                {
+                    success = true,
+                    message = "Registration successful! Please check your email for the verification link."
+                };
                 return JsonConvert.SerializeObject(result);
-           /* }
-            else
+            }
+            catch (Exception ex)
             {
+                // Rollback all changes on failure
+                await _unitOfWork.RollbackTransactionAsync();
 
-                var result = new { success = false, message = "Failed to send verification email. Please try again later." };
+                // Clean up user if created
+                var existingUser = await _userManager.FindByEmailAsync(request.Email);
+                if (existingUser != null)
+                    await _userManager.DeleteAsync(existingUser);
+
+                var result = new
+                {
+                    success = false,
+                    message = $"Registration failed: {ex.Message}"
+                };
                 return JsonConvert.SerializeObject(result);
-            }*/
+            }
         }
 
-       /* public async Task<string> VerifyConsultant(ConsultantVerificationRequest request)
+        private async Task CreateConsultantWalletAsync(Consultant consultant)
         {
-
-
-        }*/
-
-
-        private async Task CreateCustomerAccount(Consultant consultant)
-        {
-            
             Wallet wallet = new()
             {
                 WalletNo = WalletIdGenerator.GenerateWalletId(),
@@ -113,7 +124,5 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
             };
             await _walletRepo.AddAsync(wallet);
         }
-
-
     }
 }

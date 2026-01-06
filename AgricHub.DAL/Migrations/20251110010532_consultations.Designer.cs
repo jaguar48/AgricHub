@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AgricHub.DAL.Migrations
 {
     [DbContext(typeof(AgricHubDbContext))]
-    [Migration("20250906231750_updated")]
-    partial class updated
+    [Migration("20251110010532_consultations")]
+    partial class consultations
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.9")
+                .HasAnnotation("ProductVersion", "7.0.20")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -129,7 +129,7 @@ namespace AgricHub.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CategoryId")
+                    b.Property<int?>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<int>("ConsultantId")
@@ -174,7 +174,7 @@ namespace AgricHub.DAL.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("AgricHub.DAL.Entities.Consultation", b =>
+            modelBuilder.Entity("AgricHub.DAL.Entities.ChatSession", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -189,17 +189,74 @@ namespace AgricHub.DAL.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Notes")
+                    b.Property<string>("SendbirdChannelUrl")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsultantId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("ChatSessions");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Consultation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ConsultantId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ConsultantNoShowReported")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CustomDurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("CustomPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("CustomerNoShowReported")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("DeliverablesPath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsCustomOffer")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("ScheduledAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SendbirdChannelUrl")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ServiceId")
-                        .IsRequired()
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ServicePackageId")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -214,7 +271,56 @@ namespace AgricHub.DAL.Migrations
 
                     b.HasIndex("ServiceId");
 
+                    b.HasIndex("ServicePackageId");
+
                     b.ToTable("Consultations");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.CustomOffer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("AcceptedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ChatSessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IncludesOnsiteVisit")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("ScheduledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatSessionId");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("CustomOffers");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Models.Consultant", b =>
@@ -226,6 +332,7 @@ namespace AgricHub.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BusinessName")
@@ -233,6 +340,7 @@ namespace AgricHub.DAL.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CountryId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
@@ -243,25 +351,32 @@ namespace AgricHub.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsVerified")
-                        .HasColumnType("bit");
-
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("NoShowCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PaystackRecipientCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SendbirdChannelUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StateId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Consultants");
                 });
@@ -295,20 +410,58 @@ namespace AgricHub.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("NoShowCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SendbirdChannelUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StateId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.PendingTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("ConsultationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsultationId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("PendingTransactions");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Review", b =>
@@ -338,7 +491,6 @@ namespace AgricHub.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("ServiceId")
-                        .IsRequired()
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -366,6 +518,9 @@ namespace AgricHub.DAL.Migrations
                     b.Property<int>("BusinessId")
                         .HasColumnType("int");
 
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
@@ -390,7 +545,47 @@ namespace AgricHub.DAL.Migrations
 
                     b.HasIndex("BusinessId");
 
+                    b.HasIndex("CategoryId");
+
                     b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.ServicePackage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IncludesOnsiteVisit")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PackageName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("ServicePackages");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Wallet", b =>
@@ -402,7 +597,7 @@ namespace AgricHub.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(38,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("ConsultantId")
                         .HasColumnType("int");
@@ -412,6 +607,9 @@ namespace AgricHub.DAL.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("WalletNo")
                         .IsRequired()
@@ -424,7 +622,54 @@ namespace AgricHub.DAL.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Wallets");
+                    b.ToTable("Wallets", t =>
+                        {
+                            t.HasCheckConstraint("CK_Wallet_CustomerOrConsultant", "(CustomerId IS NOT NULL AND ConsultantId IS NULL) OR (CustomerId IS NULL AND ConsultantId IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.WalletTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ConsultantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PaystackTransactionReference")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsultantId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("WalletTransactions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -562,21 +807,43 @@ namespace AgricHub.DAL.Migrations
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Business", b =>
                 {
-                    b.HasOne("AgricHub.DAL.Entities.Category", "Category")
+                    b.HasOne("AgricHub.DAL.Entities.Category", null)
                         .WithMany("Businesses")
-                        .HasForeignKey("CategoryId")
+                        .HasForeignKey("CategoryId");
+
+                    b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "Consultant")
+                        .WithMany()
+                        .HasForeignKey("ConsultantId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "consultant")
+                    b.Navigation("Consultant");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.ChatSession", b =>
+                {
+                    b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "Consultant")
                         .WithMany()
                         .HasForeignKey("ConsultantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Category");
+                    b.HasOne("AgricHub.DAL.Entities.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("consultant");
+                    b.HasOne("AgricHub.DAL.Entities.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Consultant");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Service");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Consultation", b =>
@@ -596,32 +863,58 @@ namespace AgricHub.DAL.Migrations
                     b.HasOne("AgricHub.DAL.Entities.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("AgricHub.DAL.Entities.ServicePackage", "ServicePackage")
+                        .WithMany()
+                        .HasForeignKey("ServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Consultant");
 
                     b.Navigation("Customer");
 
                     b.Navigation("Service");
+
+                    b.Navigation("ServicePackage");
                 });
 
-            modelBuilder.Entity("AgricHub.DAL.Entities.Models.Consultant", b =>
+            modelBuilder.Entity("AgricHub.DAL.Entities.CustomOffer", b =>
                 {
-                    b.HasOne("AgricHub.DAL.Entities.ApplicationUser", "User")
+                    b.HasOne("AgricHub.DAL.Entities.ChatSession", "ChatSession")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("ChatSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("User");
+                    b.HasOne("AgricHub.DAL.Entities.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ChatSession");
+
+                    b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("AgricHub.DAL.Entities.Models.Customer", b =>
+            modelBuilder.Entity("AgricHub.DAL.Entities.PendingTransaction", b =>
                 {
-                    b.HasOne("AgricHub.DAL.Entities.ApplicationUser", "User")
+                    b.HasOne("AgricHub.DAL.Entities.Consultation", "Consultation")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("ConsultationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("User");
+                    b.HasOne("AgricHub.DAL.Entities.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Consultation");
+
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Review", b =>
@@ -647,8 +940,7 @@ namespace AgricHub.DAL.Migrations
                     b.HasOne("AgricHub.DAL.Entities.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Consultant");
 
@@ -667,18 +959,56 @@ namespace AgricHub.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("AgricHub.DAL.Entities.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Business");
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.ServicePackage", b =>
+                {
+                    b.HasOne("AgricHub.DAL.Entities.Service", "Service")
+                        .WithMany("Packages")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Service");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Wallet", b =>
                 {
                     b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "Consultant")
                         .WithMany()
-                        .HasForeignKey("ConsultantId");
+                        .HasForeignKey("ConsultantId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("AgricHub.DAL.Entities.Models.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId");
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Consultant");
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.WalletTransaction", b =>
+                {
+                    b.HasOne("AgricHub.DAL.Entities.Models.Consultant", "Consultant")
+                        .WithMany("WalletTransactions")
+                        .HasForeignKey("ConsultantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgricHub.DAL.Entities.Models.Customer", "Customer")
+                        .WithMany("WalletTransactions")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Consultant");
 
@@ -739,6 +1069,21 @@ namespace AgricHub.DAL.Migrations
             modelBuilder.Entity("AgricHub.DAL.Entities.Category", b =>
                 {
                     b.Navigation("Businesses");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Models.Consultant", b =>
+                {
+                    b.Navigation("WalletTransactions");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Models.Customer", b =>
+                {
+                    b.Navigation("WalletTransactions");
+                });
+
+            modelBuilder.Entity("AgricHub.DAL.Entities.Service", b =>
+                {
+                    b.Navigation("Packages");
                 });
 #pragma warning restore 612, 618
         }

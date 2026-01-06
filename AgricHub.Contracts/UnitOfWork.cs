@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AgricHub.Contracts
@@ -11,6 +10,7 @@ namespace AgricHub.Contracts
     {
         private Dictionary<Type, object> _repositories;
         private readonly TContext _context;
+        private IDbContextTransaction _transaction;
 
         public UnitOfWork(TContext context)
         {
@@ -19,27 +19,50 @@ namespace AgricHub.Contracts
 
         public IRepository<TEntity> GetRepository<TEntity>() where TEntity : class
         {
-            if (_repositories == null) _repositories = new Dictionary<Type, object>();
+            _repositories ??= new Dictionary<Type, object>();
 
             var type = typeof(TEntity);
-            if (!_repositories.ContainsKey(type)) _repositories[type] = new Repository<TEntity>(_context);
+            if (!_repositories.ContainsKey(type))
+                _repositories[type] = new Repository<TEntity>(_context);
+
             return (IRepository<TEntity>)_repositories[type];
         }
 
-        public int SaveChanges()
+        public int SaveChanges() => _context.SaveChanges();
+        public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
+
+        // --- Transaction Handling ---
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
-            return _context.SaveChanges();
+            if (_transaction == null)
+                _transaction = await _context.Database.BeginTransactionAsync();
+            return _transaction;
+        }
+
+        public async Task CommitTransactionAsync()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.CommitAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
+
+        public async Task RollbackTransactionAsync()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.RollbackAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
         }
 
         public void Dispose()
         {
+            _transaction?.Dispose();
             _context?.Dispose();
         }
-
-        public async Task<int> SaveChangesAsync()
-        {
-            return await _context.SaveChangesAsync();
-        }
-
     }
 }

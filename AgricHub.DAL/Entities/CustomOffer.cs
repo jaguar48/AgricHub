@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace AgricHub.DAL.Entities
 {
+ 
+
     public class CustomOffer
     {
         public Guid Id { get; set; }
@@ -17,7 +19,10 @@ namespace AgricHub.DAL.Entities
         public string Description { get; set; }
         public bool IncludesOnsiteVisit { get; set; }
         public string Status { get; set; } // Pending, Accepted, Rejected
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
         public DateTime? AcceptedAt { get; set; }
+      
+        public DateTime? ScheduledAt { get; set; } // Proposed consultation time
+        public int DurationMinutes { get; set; } // Duration of the consultation
     }
 }

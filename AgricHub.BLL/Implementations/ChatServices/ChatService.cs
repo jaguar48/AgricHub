@@ -1,5 +1,4 @@
-﻿using AgricHub.BLL.Interfaces;
-using AgricHub.BLL.Interfaces.ChatServices;
+﻿using AgricHub.BLL.Interfaces.ChatServices;
 using AgricHub.BLL.Interfaces.IChatServices;
 using AgricHub.Contracts;
 using AgricHub.DAL.Entities;
@@ -9,6 +8,7 @@ using AgricHub.Shared.DTO_s.Response;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Security.Claims;
 
 namespace AgricHub.BLL.Implementations
@@ -21,8 +21,10 @@ namespace AgricHub.BLL.Implementations
         private readonly IRepository<Service> _servicesRepo;
         private readonly IRepository<CustomOffer> _customOfferRepo;
         private readonly IRepository<Business> _businessRepo;
-        private readonly ISendbirdService _sendbirdService;
+        private readonly IRepository<Consultation> _consultationRepo;
+        private readonly IRepository<Wallet> _walletRepo;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ISendbirdService _sendbirdService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
 
@@ -39,6 +41,8 @@ namespace AgricHub.BLL.Implementations
             _servicesRepo = _unitOfWork.GetRepository<Service>();
             _customOfferRepo = _unitOfWork.GetRepository<CustomOffer>();
             _businessRepo = _unitOfWork.GetRepository<Business>();
+            _consultationRepo = _unitOfWork.GetRepository<Consultation>();
+            _walletRepo = _unitOfWork.GetRepository<Wallet>();
             _sendbirdService = sendbirdService;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
@@ -52,52 +56,45 @@ namespace AgricHub.BLL.Implementations
             return userId;
         }
 
-        public async Task<string> InitiateChatAsync(InitiateChatRequest request)
+        public async Task<ChatInitiateResponse> InitiateChatAsync(InitiateChatRequest request)
         {
             var userId = GetUserId();
-
-            // Ensure the user is a customer
             var customer = await _customerRepo.GetSingleByAsync(c => c.UserId == userId);
             if (customer == null)
                 throw new UnauthorizedAccessException("Customer not found.");
 
-            // Ensure the consultant exists
             var consultant = await _consultantRepo.GetSingleByAsync(c => c.UserId == request.ConsultantUserId);
             if (consultant == null)
                 throw new KeyNotFoundException("Consultant not found.");
 
-            // Validate the service
             var service = await _servicesRepo.GetSingleByAsync(s => s.Id == request.ServiceId,
                 include: q => q.Include(s => s.Business));
             if (service == null)
                 throw new KeyNotFoundException("Service not found.");
 
-            // Ensure the service belongs to the consultant's business
             var business = await _businessRepo.GetSingleByAsync(b => b.Id == service.BusinessId && b.ConsultantId == consultant.Id);
             if (business == null)
                 throw new UnauthorizedAccessException("This service does not belong to the specified consultant.");
 
-            // Check for existing chat session
             var existingChat = await _chatSessionRepo.GetSingleByAsync(cs =>
                 cs.CustomerId == customer.Id &&
                 cs.ConsultantId == consultant.Id &&
                 cs.ServiceId == request.ServiceId);
 
             string channelUrl;
+            Guid chatSessionId;  // ← ADD THIS
+
             if (existingChat != null)
             {
                 channelUrl = existingChat.SendbirdChannelUrl;
+                chatSessionId = existingChat.Id;  // ← CAPTURE ID
             }
             else
             {
-                // Create Sendbird users if they don't exist
                 await _sendbirdService.EnsureSendbirdUserAsync(customer.UserId, $"{customer.FirstName} {customer.LastName}");
                 await _sendbirdService.EnsureSendbirdUserAsync(consultant.UserId, $"{consultant.FirstName} {consultant.LastName}");
-
-                // Create a distinct 1:1 Sendbird channel
                 channelUrl = await _sendbirdService.CreateGroupChannelAsync(customer.UserId, consultant.UserId);
 
-                // Create and save new chat session
                 var chatSession = new ChatSession
                 {
                     Id = Guid.NewGuid(),
@@ -110,47 +107,48 @@ namespace AgricHub.BLL.Implementations
 
                 await _chatSessionRepo.AddAsync(chatSession);
                 await _unitOfWork.SaveChangesAsync();
+
+                chatSessionId = chatSession.Id;  // ← CAPTURE ID
             }
 
-            // Send an initial system message with service context
             var message = $"Chat initiated between {customer.FirstName} and {consultant.FirstName} regarding service: {service.ServiceName}.";
-            var serviceData = new { ServiceId = service.Id, ServiceName = service.ServiceName, Price = service.Price };
+            var serviceData = new { ServiceId = service.Id, ServiceName = service.ServiceName };
             await _sendbirdService.SendAdminMessageAsync(channelUrl, message, serviceData);
 
-            return channelUrl;
+            // ✅ RETURN PROPER RESPONSE
+            return new ChatInitiateResponse
+            {
+                Success = true,
+                Message = existingChat != null ? "Existing chat session retrieved." : "Chat session created successfully.",
+                ChannelUrl = channelUrl,
+                ChatSessionId = chatSessionId.ToString()
+            };
         }
 
         public async Task<CustomOfferResponse> CreateCustomOfferAsync(CustomOfferRequest request)
         {
             var userId = GetUserId();
-
-            // Ensure the user is a consultant
             var consultant = await _consultantRepo.GetSingleByAsync(c => c.UserId == userId);
             if (consultant == null)
                 throw new UnauthorizedAccessException("Consultant not found.");
 
-            // Validate the chat session
             var chatSession = await _chatSessionRepo.GetSingleByAsync(cs => cs.Id == request.ChatSessionId,
                 include: q => q.Include(cs => cs.Service).Include(cs => cs.Consultant));
             if (chatSession == null)
                 throw new KeyNotFoundException("Chat session not found.");
 
-            // Ensure the consultant owns the chat session
             if (chatSession.ConsultantId != consultant.Id)
                 throw new UnauthorizedAccessException("You are not authorized to create an offer for this chat session.");
 
-            // Validate the service
             var service = await _servicesRepo.GetSingleByAsync(s => s.Id == request.ServiceId,
                 include: q => q.Include(s => s.Business));
             if (service == null)
                 throw new KeyNotFoundException("Service not found.");
 
-            // Ensure the service belongs to the consultant's business
             var business = await _businessRepo.GetSingleByAsync(b => b.Id == service.BusinessId && b.ConsultantId == consultant.Id);
             if (business == null)
                 throw new UnauthorizedAccessException("This service does not belong to the specified consultant.");
 
-            // Create custom offer
             var customOffer = _mapper.Map<CustomOffer>(request);
             customOffer.Status = "Pending";
             customOffer.CreatedAt = DateTime.UtcNow;
@@ -158,9 +156,17 @@ namespace AgricHub.BLL.Implementations
             await _customOfferRepo.AddAsync(customOffer);
             await _unitOfWork.SaveChangesAsync();
 
-            // Send admin message to chat channel
-            var message = $"Custom offer created for service: {service.ServiceName}. Price: {customOffer.Price}. Description: {customOffer.Description}. Onsite: {customOffer.IncludesOnsiteVisit}.";
-            var offerData = new { OfferId = customOffer.Id, ServiceId = service.Id, ServiceName = service.ServiceName, Price = customOffer.Price, Description = customOffer.Description, IncludesOnsiteVisit = customOffer.IncludesOnsiteVisit };
+            var message = $"Custom offer created for service: {service.ServiceName}. Price: ₦{customOffer.Price}. Description: {customOffer.Description}. Onsite: {customOffer.IncludesOnsiteVisit}. Scheduled: {customOffer.ScheduledAt:yyyy-MM-dd HH:mm}.";
+            var offerData = new
+            {
+                OfferId = customOffer.Id,
+                ServiceId = service.Id,
+                ServiceName = service.ServiceName,
+                Price = customOffer.Price,
+                Description = customOffer.Description,
+                IncludesOnsiteVisit = customOffer.IncludesOnsiteVisit,
+                ScheduledAt = customOffer.ScheduledAt
+            };
             await _sendbirdService.SendAdminMessageAsync(chatSession.SendbirdChannelUrl, message, offerData);
 
             return _mapper.Map<CustomOfferResponse>(customOffer);
@@ -169,54 +175,139 @@ namespace AgricHub.BLL.Implementations
         public async Task<CustomOfferResponse> AcceptCustomOfferAsync(Guid offerId)
         {
             var userId = GetUserId();
-
-            // Ensure the user is a customer
             var customer = await _customerRepo.GetSingleByAsync(c => c.UserId == userId);
             if (customer == null)
                 throw new UnauthorizedAccessException("Customer not found.");
 
-            // Validate the offer
             var customOffer = await _customOfferRepo.GetSingleByAsync(co => co.Id == offerId,
-                include: q => q.Include(co => co.ChatSession).ThenInclude(cs => cs.Customer));
+                include: q => q.Include(co => co.ChatSession)
+                               .ThenInclude(cs => cs.Customer)
+                               .Include(co => co.ChatSession)
+                               .ThenInclude(cs => cs.Consultant)
+                               .Include(co => co.Service));
             if (customOffer == null)
                 throw new KeyNotFoundException("Custom offer not found.");
 
-            // Ensure the customer is part of the chat session
             if (customOffer.ChatSession.CustomerId != customer.Id)
                 throw new UnauthorizedAccessException("You are not authorized to accept this offer.");
 
             if (customOffer.Status != "Pending")
                 throw new InvalidOperationException("Only pending offers can be accepted.");
 
-            customOffer.Status = "Accepted";
-            customOffer.AcceptedAt = DateTime.UtcNow;
+            // ✅ FIXED VALIDATION
+            if (!customOffer.ScheduledAt.HasValue)
+                throw new InvalidOperationException("Custom offer does not have a scheduled time.");
 
-            _customOfferRepo.Update(customOffer);
-            await _unitOfWork.SaveChangesAsync();
+            if (customOffer.DurationMinutes <= 0)  // ← REMOVED .HasValue and .Value
+                throw new InvalidOperationException("Custom offer does not have a valid duration.");
 
-            // Send admin message
-            await _sendbirdService.SendAdminMessageAsync(customOffer.ChatSession.SendbirdChannelUrl,
-                $"Custom offer accepted for service: {customOffer.Service.ServiceName}. Price: {customOffer.Price}.");
+            var isSlotTaken = await _consultationRepo.AnyAsync(c =>
+                c.ConsultantId == customOffer.ChatSession.ConsultantId &&
+                c.ScheduledAt == customOffer.ScheduledAt.Value);
+            if (isSlotTaken)
+                throw new InvalidOperationException("The proposed time slot is already booked.");
 
-            return _mapper.Map<CustomOfferResponse>(customOffer);
+            var customerWallet = await _walletRepo.GetSingleByAsync(w => w.CustomerId == customer.Id);
+            if (customerWallet == null || customerWallet.Balance < customOffer.Price)
+                throw new InvalidOperationException("Insufficient wallet balance. Please top up your wallet.");
+
+            // 🔒 START TRANSACTION
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                customerWallet.Balance -= customOffer.Price;
+                customerWallet.LastUpdated = DateTime.UtcNow;
+                _walletRepo.Update(customerWallet);
+
+                var consultation = new Consultation
+                {
+                    Id = Guid.NewGuid(),
+                    CustomerId = customOffer.ChatSession.CustomerId,
+                    ConsultantId = customOffer.ChatSession.ConsultantId,
+                    ServiceId = customOffer.ServiceId,
+                    ServicePackageId = null,
+                    ScheduledAt = customOffer.ScheduledAt.Value,
+                    EndAt = customOffer.ScheduledAt.Value.AddMinutes(customOffer.DurationMinutes),  // ← REMOVED .Value
+                    Status = "Pending",
+                    SendbirdChannelUrl = customOffer.ChatSession.SendbirdChannelUrl,
+                    CreatedAt = DateTime.UtcNow,
+                    IsCustomOffer = true,
+                    CustomPrice = customOffer.Price,
+                    CustomDurationMinutes = customOffer.DurationMinutes  // ← REMOVED .Value
+                };
+
+                await _consultationRepo.AddAsync(consultation);
+
+                var pendingTransaction = new PendingTransaction
+                {
+                    Id = Guid.NewGuid(),
+                    CustomerId = customer.Id,
+                    ConsultationId = consultation.Id,
+                    Amount = customOffer.Price,
+                    Status = "Held",
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _unitOfWork.GetRepository<PendingTransaction>().AddAsync(pendingTransaction);
+
+                var walletTransaction = new WalletTransaction
+                {
+                    CustomerId = customer.Id,
+                    ConsultantId = null,
+                    Amount = -customOffer.Price,
+                    PaystackTransactionReference = null,
+                    TransactionType = "CustomOfferPayment",
+                    Status = "Completed",
+                    CreatedAt = DateTime.UtcNow,
+                    CompletedAt = DateTime.UtcNow
+                };
+                await _unitOfWork.GetRepository<WalletTransaction>().AddAsync(walletTransaction);
+
+                customOffer.Status = "Accepted";
+                customOffer.AcceptedAt = DateTime.UtcNow;
+                _customOfferRepo.Update(customOffer);
+
+                await _unitOfWork.SaveChangesAsync();
+
+                // ✅ Commit transaction
+                await _unitOfWork.CommitTransactionAsync();
+
+               
+                try
+                {
+                    await _sendbirdService.SendAdminMessageAsync(customOffer.ChatSession.SendbirdChannelUrl,
+                        $"✅ Custom offer accepted for {customOffer.Service.ServiceName}. " +
+                        $"Price: ₦{customOffer.Price:N2} (held in escrow). " +
+                        $"Scheduled: {customOffer.ScheduledAt:yyyy-MM-dd HH:mm}.");
+                }
+                catch
+                {
+                    // Don't fail if Sendbird fails
+                }
+
+                return _mapper.Map<CustomOfferResponse>(customOffer);
+            }
+            catch (Exception ex)
+            {
+                // ❌ Rollback transaction
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new Exception($"Failed to accept custom offer: {ex.Message}", ex);
+            }
         }
 
         public async Task<CustomOfferResponse> RejectCustomOfferAsync(Guid offerId, string reason)
         {
             var userId = GetUserId();
-
-            // Ensure the user is a customer
             var customer = await _customerRepo.GetSingleByAsync(c => c.UserId == userId);
             if (customer == null)
                 throw new UnauthorizedAccessException("Customer not found.");
 
-            // Validate the offer
             var customOffer = await _customOfferRepo.GetSingleByAsync(co => co.Id == offerId,
-                include: q => q.Include(co => co.ChatSession).ThenInclude(cs => cs.Customer));
+                include: q => q.Include(co => co.ChatSession).ThenInclude(cs => cs.Customer)
+                               .Include(co => co.Service));
             if (customOffer == null)
                 throw new KeyNotFoundException("Custom offer not found.");
 
-            // Ensure the customer is part of the chat session
             if (customOffer.ChatSession.CustomerId != customer.Id)
                 throw new UnauthorizedAccessException("You are not authorized to reject this offer.");
 
@@ -224,11 +315,9 @@ namespace AgricHub.BLL.Implementations
                 throw new InvalidOperationException("Only pending offers can be rejected.");
 
             customOffer.Status = "Rejected";
-
             _customOfferRepo.Update(customOffer);
             await _unitOfWork.SaveChangesAsync();
 
-            // Send admin message
             await _sendbirdService.SendAdminMessageAsync(customOffer.ChatSession.SendbirdChannelUrl,
                 $"Custom offer rejected for service: {customOffer.Service.ServiceName}. Reason: {reason}.");
 
@@ -243,10 +332,9 @@ namespace AgricHub.BLL.Implementations
 
             var chatSessions = await _chatSessionRepo.GetAllAsync(
                 cs => cs.CustomerId == customer.Id,
-                include: q => q
-                    .Include(cs => cs.Customer)
-                    .Include(cs => cs.Consultant)
-                    .Include(cs => cs.Service));
+                include: q => q.Include(cs => cs.Customer)
+                               .Include(cs => cs.Consultant)
+                               .Include(cs => cs.Service));
 
             return _mapper.Map<IEnumerable<ChatSessionResponse>>(chatSessions);
         }
@@ -259,10 +347,9 @@ namespace AgricHub.BLL.Implementations
 
             var chatSessions = await _chatSessionRepo.GetAllAsync(
                 cs => cs.ConsultantId == consultant.Id,
-                include: q => q
-                    .Include(cs => cs.Customer)
-                    .Include(cs => cs.Consultant)
-                    .Include(cs => cs.Service));
+                include: q => q.Include(cs => cs.Customer)
+                               .Include(cs => cs.Consultant)
+                               .Include(cs => cs.Service));
 
             return _mapper.Map<IEnumerable<ChatSessionResponse>>(chatSessions);
         }

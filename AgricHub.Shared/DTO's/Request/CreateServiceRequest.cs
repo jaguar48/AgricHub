@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
@@ -11,10 +12,6 @@ using System.Threading.Tasks;
 
 namespace AgricHub.Shared.DTO_s.Request
 {
-
-
-
-
     public class CreateServiceRequest
     {
         public int BusinessId { get; set; }
@@ -25,7 +22,11 @@ namespace AgricHub.Shared.DTO_s.Request
         public IFormFile File { get; set; }
 
         // Swagger will treat this as a simple string field
-        public string PackagesJson { get; set; }
+        public string ? PackagesJson { get; set; }
+
+        // Default duration for when no packages are provided (backward compatibility)
+        [Range(1, 1440, ErrorMessage = "Duration must be between 1 and 1440 minutes (24 hours)")]
+        public int DefaultDurationMinutes { get; set; } = 60; // 1 hour default
 
         [NotMapped]
         [JsonIgnore]
@@ -36,10 +37,23 @@ namespace AgricHub.Shared.DTO_s.Request
 
     public class ServicePackageRequest
     {
-        public int Id { get; set; } // For updates
-        public string PackageName { get; set; } // e.g., Basic, Standard, Consulting, Premium
+        public int Id { get; set; } // 0 for new packages, >0 for existing
+
+        [Required]
+        [MaxLength(100)]
+        public string PackageName { get; set; }
+
+        [Required]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
         public decimal Price { get; set; }
+
+        [Required]
+        [Range(1, 1440, ErrorMessage = "Duration must be between 1 and 1440 minutes (24 hours)")]
+        public int DurationMinutes { get; set; }
+
+        [MaxLength(500)]
         public string Description { get; set; }
+
         public bool IncludesOnsiteVisit { get; set; }
     }
 }

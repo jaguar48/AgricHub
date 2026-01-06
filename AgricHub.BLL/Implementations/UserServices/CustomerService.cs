@@ -34,43 +34,86 @@ namespace AgricHub.BLL.Implementations.UserServices
 
         public async Task<string> RegisterCustomer(CustomerRegistrationRequest request)
         {
-            var user = await _userServices.RegisterUser(new UserForRegistrationRequest
+            ApplicationUser user = null;
+
+            try
             {
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Email = request.Email,
-                Password = request.Password,
-                UserName = request.UserName,
-                CountryId = request.CountryId,
-                StateId = request.StateId,
-                Address = request.Address,
-                PhoneNumber = request.PhoneNumber
-            });
+                // 🔒 START TRANSACTION
+                await _unitOfWork.BeginTransactionAsync();
 
-            await _userManager.AddToRoleAsync(user, "Customer");
+                // 1. Register user in Identity
+                user = await _userServices.RegisterUser(new UserForRegistrationRequest
+                {
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Email = request.Email,
+                    Password = request.Password,
+                    UserName = request.UserName,
+                    CountryId = request.CountryId,
+                    StateId = request.StateId,
+                    Address = request.Address,
+                    PhoneNumber = request.PhoneNumber
+                });
 
-            var customer = new Customer
+                // 2. Add Customer role
+                await _userManager.AddToRoleAsync(user, "Customer");
+
+                // 3. Create Customer record
+                var customer = new Customer
+                {
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Email = request.Email,
+                    PhoneNumber = request.PhoneNumber,
+                    Address = request.Address,
+                    CountryId = request.CountryId,
+                    StateId = request.StateId,
+                    UserId = user.Id,
+                    SendbirdChannelUrl = null  // Will be set later when creating chat
+                };
+
+                await _customerRepo.AddAsync(customer);
+                await _unitOfWork.SaveChangesAsync(); // Save to get customer.Id
+
+                // 4. Create Wallet for Customer
+                await CreateWalletForCustomer(customer);
+                await _unitOfWork.SaveChangesAsync();
+
+                // ✅ All successful - commit transaction
+                await _unitOfWork.CommitTransactionAsync();
+
+                var result = new
+                {
+                    success = true,
+                    message = "Registration successful! Please check your email for verification."
+                };
+                return JsonConvert.SerializeObject(result);
+            }
+            catch (Exception ex)
             {
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Email = request.Email,
-                PhoneNumber = request.PhoneNumber,
-                Address = request.Address,
-                CountryId = request.CountryId,
-                StateId = request.StateId,
-                UserId = user.Id
-            };
+                // ❌ Rollback transaction
+                await _unitOfWork.RollbackTransactionAsync();
 
-            await _customerRepo.AddAsync(customer);
-            await CreateWalletForCustomer(customer);
+                // Clean up user if created (compensating action for Identity)
+                if (user != null)
+                {
+                    try
+                    {
+                        await _userManager.DeleteAsync(user);
+                    }
+                    catch
+                    {
+                        // Log failure to delete user
+                    }
+                }
 
-            var result = new
-            {
-                success = true,
-                message = "Registration successful! Please check your email for verification."
-            };
-
-            return JsonConvert.SerializeObject(result);
+                var result = new
+                {
+                    success = false,
+                    message = $"Registration failed: {ex.Message}"
+                };
+                return JsonConvert.SerializeObject(result);
+            }
         }
 
         private async Task CreateWalletForCustomer(Customer customer)
@@ -82,7 +125,6 @@ namespace AgricHub.BLL.Implementations.UserServices
                 IsActive = true,
                 CustomerId = customer.Id
             };
-
             await _walletRepo.AddAsync(wallet);
         }
     }

@@ -16,7 +16,6 @@ namespace AgricHub.DAL.Entities
         public decimal Balance { get; set; }
         public bool IsActive { get; set; }
 
-        // Optional foreign keys
         public int? ConsultantId { get; set; }
         public int? CustomerId { get; set; }
 
@@ -25,5 +24,8 @@ namespace AgricHub.DAL.Entities
 
         [ForeignKey(nameof(CustomerId))]
         public virtual Customer? Customer { get; set; }
+
+        public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
     }
+
 }

@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 
 namespace AgricHub.BLL.Interfaces.IChatServices
 {
-    
-        public interface IChatService
-        {
-        Task<string> InitiateChatAsync(InitiateChatRequest request);
-        Task<IEnumerable<ChatSessionResponse>> GetMyChatsAsync();
-        Task<IEnumerable<ChatSessionResponse>> GetConsultantChatsAsync();
+
+    public interface IChatService
+    {
+       Task<ChatInitiateResponse> InitiateChatAsync(InitiateChatRequest request);
         Task<CustomOfferResponse> CreateCustomOfferAsync(CustomOfferRequest request);
         Task<CustomOfferResponse> AcceptCustomOfferAsync(Guid offerId);
         Task<CustomOfferResponse> RejectCustomOfferAsync(Guid offerId, string reason);
+        Task<IEnumerable<ChatSessionResponse>> GetMyChatsAsync();
+        Task<IEnumerable<ChatSessionResponse>> GetConsultantChatsAsync();
     }
-   
+
 }

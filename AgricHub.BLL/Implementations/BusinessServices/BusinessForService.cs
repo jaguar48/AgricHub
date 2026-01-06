@@ -36,15 +36,12 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
 
         public async Task<string> AddServiceAsync(CreateServiceRequest serviceRequest)
         {
-
             if (!string.IsNullOrEmpty(serviceRequest.PackagesJson))
             {
                 serviceRequest.Packages = JsonConvert.DeserializeObject<List<ServicePackageRequest>>(serviceRequest.PackagesJson);
             }
 
-
-
-            // Log the incoming Packages count for debugging
+           
             Console.WriteLine($"Received {serviceRequest.Packages?.Count ?? 0} packages in CreateServiceRequest");
 
             if (serviceRequest.File == null || serviceRequest.File.Length == 0)
@@ -111,13 +108,14 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
             service.CategoryId = category.Id;
             service.DateCreated = DateTime.UtcNow;
 
-            // Add packages
+           
             if (serviceRequest.Packages?.Any() == true)
             {
                 Console.WriteLine("Mapping provided packages");
                 service.Packages = _mapper.Map<List<ServicePackage>>(serviceRequest.Packages);
                 foreach (var package in service.Packages)
                 {
+                    package.ServiceId = service.Id;
                     package.Service = service;
                     package.CreatedAt = DateTime.UtcNow;
                 }
@@ -125,12 +123,15 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
             else
             {
                 Console.WriteLine("Creating default package");
+               
                 service.Packages.Add(new ServicePackage
                 {
                     PackageName = "Basic",
                     Price = serviceRequest.Price,
+                    DurationMinutes = serviceRequest.DefaultDurationMinutes,
                     Description = "Default package",
                     IncludesOnsiteVisit = false,
+                    ServiceId = service.Id,
                     CreatedAt = DateTime.UtcNow
                 });
             }
@@ -147,6 +148,7 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
             {
                 serviceRequest.Packages = JsonConvert.DeserializeObject<List<ServicePackageRequest>>(serviceRequest.PackagesJson);
             }
+
             var service = await _servicesRepo.GetSingleByAsync(s => s.Id == serviceId,
                 include: q => q.Include(s => s.Packages));
             if (service == null)
@@ -172,14 +174,14 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                 throw new UnauthorizedAccessException("You are not authorized to update this service.");
             }
 
-            // Validate category
+          
             var category = await _unitOfWork.GetRepository<Category>().GetByIdAsync(serviceRequest.CategoryId);
             if (category == null)
             {
                 throw new Exception("Invalid Category ID.");
             }
 
-            // Update service fields
+            
             service.ServiceName = serviceRequest.ServiceName;
             service.Description = serviceRequest.Description;
             service.Price = serviceRequest.Price;
@@ -218,32 +220,48 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                 service.ImagePath = dbPath;
             }
 
-            // Update packages
-            var existingPackageIds = service.Packages.Select(p => p.Id).ToList();
-            var updatedPackageIds = serviceRequest.Packages.Select(p => p.Id).Where(id => id > 0).ToList();
-
-            // Remove deleted packages
-            var packagesToRemove = service.Packages.Where(p => !updatedPackageIds.Contains(p.Id)).ToList();
-            foreach (var package in packagesToRemove)
+            if (serviceRequest.Packages?.Any() == true)
             {
-                _servicePackageRepo.Delete(package);
-            }
+                var existingPackageIds = service.Packages.Select(p => p.Id).ToList();
+                var updatedPackageIds = serviceRequest.Packages.Select(p => p.Id).Where(id => id > 0).ToList();
 
-            // Update or add packages
-            foreach (var packageRequest in serviceRequest.Packages)
-            {
-                var existingPackage = service.Packages.FirstOrDefault(p => p.Id == packageRequest.Id);
-                if (existingPackage != null)
+                
+                var packagesToRemove = service.Packages.Where(p => !updatedPackageIds.Contains(p.Id)).ToList();
+                foreach (var package in packagesToRemove)
                 {
-                    _mapper.Map(packageRequest, existingPackage);
-                    existingPackage.CreatedAt = DateTime.UtcNow;
+                    _servicePackageRepo.Delete(package);
                 }
-                else
+
+               
+                foreach (var packageRequest in serviceRequest.Packages)
                 {
-                    var newPackage = _mapper.Map<ServicePackage>(packageRequest);
-                    newPackage.ServiceId = service.Id;
-                    newPackage.CreatedAt = DateTime.UtcNow;
-                    service.Packages.Add(newPackage);
+                    var existingPackage = service.Packages.FirstOrDefault(p => p.Id == packageRequest.Id);
+                    if (existingPackage != null)
+                    {
+                        
+                        existingPackage.PackageName = packageRequest.PackageName;
+                        existingPackage.Price = packageRequest.Price;
+                        existingPackage.DurationMinutes = packageRequest.DurationMinutes;
+                        existingPackage.Description = packageRequest.Description;
+                        existingPackage.IncludesOnsiteVisit = packageRequest.IncludesOnsiteVisit;
+                        existingPackage.CreatedAt = DateTime.UtcNow;
+                        _servicePackageRepo.Update(existingPackage);
+                    }
+                    else
+                    {
+                        
+                        var newPackage = new ServicePackage
+                        {
+                            ServiceId = service.Id,
+                            PackageName = packageRequest.PackageName,
+                            Price = packageRequest.Price,
+                            DurationMinutes = packageRequest.DurationMinutes,
+                            Description = packageRequest.Description,
+                            IncludesOnsiteVisit = packageRequest.IncludesOnsiteVisit,
+                            CreatedAt = DateTime.UtcNow
+                        };
+                        service.Packages.Add(newPackage);
+                    }
                 }
             }
 
