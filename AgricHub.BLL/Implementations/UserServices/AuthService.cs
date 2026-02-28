@@ -205,33 +205,36 @@ namespace AgricHub.BLL.Implementations.UserServices
             {
                 Audience = new List<string>() { _configuration["Authentication:Google:ClientId"] }
             };
+
             var payload = await GoogleJsonWebSignature.ValidateAsync(credential, settings);
-
             if (payload == null)
-                throw new InvalidOperationException($"Invalid External Authentication.");
-
-            var info = new UserLoginInfo("GOOGLE", payload.Name, "GOOGLE");
-            if (info == null)
-                throw new InvalidOperationException($"NO INFO");
+                throw new InvalidOperationException("Invalid Google authentication.");
 
             var user = await _userManager.FindByEmailAsync(payload.Email);
+
             if (user == null)
             {
-
-                var newuser = new ApplicationUser
+                var newUser = new ApplicationUser
                 {
                     Id = Guid.NewGuid().ToString(),
                     Email = payload.Email,
                     UserName = payload.Email,
                     FirstName = payload.GivenName,
                     LastName = payload.FamilyName,
+                    EmailConfirmed = true
                 };
 
-                newuser.EmailConfirmed = true;
+                var result = await _userManager.CreateAsync(newUser);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"Failed to create user: {errors}");
+                }
 
-                var result = await _userManager.CreateAsync(newuser);
+                await _userManager.AddToRoleAsync(newUser, "Consultant");
 
-                
+                var info = new UserLoginInfo("GOOGLE", payload.Subject, "GOOGLE");
+                await _userManager.AddLoginAsync(newUser, info);
 
                 var consultant = new Consultant
                 {
@@ -239,42 +242,34 @@ namespace AgricHub.BLL.Implementations.UserServices
                     LastName = payload.FamilyName,
                     Email = payload.Email,
                     BusinessName = payload.Name,
-                    UserId = newuser.Id
+                    UserId = newUser.Id
                 };
 
                 await _consultantRepo.AddAsync(consultant);
+                await _unitOfWork.SaveChangesAsync();
 
-                if (!result.Succeeded)
-                {
-                    var message = $"Failed to create user: {(result.Errors.FirstOrDefault())?.Description}";
-                    throw new InvalidOperationException(message);
-                }
+                _user = newUser;
+                var jwtToken = await GenerateToken();
 
-                await _userManager.AddLoginAsync(newuser, info);
-
-                var jwttoken = await GenerateToken();
-                var fullname = $"{newuser.LastName} {newuser.FirstName}";
                 return new AuthenticationResponse
                 {
-                    JwtToken = jwttoken,
-                    
-                    FullName = fullname,
+                    JwtToken = jwtToken,  // ✅ FIXED - pass the whole object
+                    UserType = "Consultant",  // ✅ FIXED - add UserType
+                    FullName = $"{newUser.FirstName} {newUser.LastName}",
                     TwoFactor = false,
-                    IsExisting = false,
+                    IsExisting = false
                 };
             }
 
-            var existuser = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-            if (existuser == null)
-                throw new InvalidOperationException($"User Does Not exist");
+            // Existing user
+            _user = user;
+            var token = await GenerateToken();
 
-            var jwtToken = await GenerateToken();
-            var newUserFullname = $"{existuser.LastName} {existuser.FirstName}";
             return new AuthenticationResponse
             {
-                JwtToken = jwtToken,
-               
-                FullName = newUserFullname,
+                JwtToken = token,  // ✅ FIXED - pass the whole object
+                UserType = "Consultant",  // ✅ FIXED - add UserType
+                FullName = $"{user.FirstName} {user.LastName}",
                 TwoFactor = false,
                 IsExisting = true
             };
