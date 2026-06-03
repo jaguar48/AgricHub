@@ -4,6 +4,7 @@ using AgricHub.DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AgricHub.DAL.Migrations
 {
     [DbContext(typeof(AgricHubDbContext))]
-    partial class AgricHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260524194448_AddAvatarUrlAndCreatedAt")]
+    partial class AddAvatarUrlAndCreatedAt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -333,68 +336,6 @@ namespace AgricHub.DAL.Migrations
                     b.HasIndex("ServiceId");
 
                     b.ToTable("CustomOffers");
-                });
-
-            modelBuilder.Entity("AgricHub.DAL.Entities.Models.BusinessVerification", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("BusinessName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CountryId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DocumentPathsJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsVerified")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RejectionNotes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("StateId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("SubmittedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("BusinessVerifications");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Models.Consultant", b =>
@@ -1018,15 +959,6 @@ namespace AgricHub.DAL.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("AgricHub.DAL.Entities.Models.BusinessVerification", b =>
-                {
-                    b.HasOne("AgricHub.DAL.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("AgricHub.DAL.Entities.PendingTransaction", b =>
                 {
                     b.HasOne("AgricHub.DAL.Entities.Consultation", "Consultation")
@@ -1083,7 +1015,7 @@ namespace AgricHub.DAL.Migrations
             modelBuilder.Entity("AgricHub.DAL.Entities.Service", b =>
                 {
                     b.HasOne("AgricHub.DAL.Entities.Business", "Business")
-                        .WithMany("Services")
+                        .WithMany()
                         .HasForeignKey("BusinessId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1201,11 +1133,6 @@ namespace AgricHub.DAL.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("AgricHub.DAL.Entities.Business", b =>
-                {
-                    b.Navigation("Services");
                 });
 
             modelBuilder.Entity("AgricHub.DAL.Entities.Category", b =>

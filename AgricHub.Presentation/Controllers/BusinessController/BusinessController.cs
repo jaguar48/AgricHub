@@ -1,14 +1,8 @@
-﻿using AgricHub.BLL.Implementations.UserServices.UserServices;
-using AgricHub.BLL.Interfaces.IAgrichub_Services;
-using AgricHub.BLL.Interfaces.IUserServices;
+﻿using AgricHub.BLL.Interfaces.IAgrichub_Services;
 using AgricHub.Shared.DTO_s.Request;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AgricHub.Presentation.Controllers.BusinessController
 {
@@ -18,30 +12,69 @@ namespace AgricHub.Presentation.Controllers.BusinessController
     {
         private readonly IBusiness_ConsultServices _business_ConsultServices;
 
-
         public BusinessController(IBusiness_ConsultServices businessServices)
         {
             _business_ConsultServices = businessServices;
-
-
         }
 
+        [Authorize(Roles = "Consultant")]
         [HttpPost("createBusiness")]
-
-        public async Task<IActionResult> Createbusiness([FromForm] CreateBusinessRequest businessRequest)
+        public async Task<IActionResult> CreateBusiness([FromForm] CreateBusinessRequest businessRequest)
         {
-
-            var result = await _business_ConsultServices.AddBusiness(businessRequest);
-            return Ok(result);
+            try
+            {
+                var result = await _business_ConsultServices.AddBusiness(businessRequest);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
+
         [HttpPost("createCategory")]
-
-        public async Task<IActionResult> Createcategory([FromBody] CreateCategoryRequest categoryRequest)
+        public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest categoryRequest)
         {
+            try
+            {
+                var result = await _business_ConsultServices.AddCategory(categoryRequest);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
 
-            var result = await _business_ConsultServices.AddCategory(categoryRequest);
-            return Ok(result);
+        [Authorize(Roles = "Consultant")]
+        [HttpGet("my-business")]           // ← new endpoint
+        public async Task<IActionResult> GetMyBusiness()
+        {
+            try
+            {
+                var result = await _business_ConsultServices.GetMyBusinessAsync();
+                if (result == null)
+                    return Ok(new { success = false, data = (object)null, message = "No business found." });
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("categories")]            // ← fix for the 404
+        public async Task<IActionResult> GetCategories()
+        {
+            try
+            {
+                var categories = await _business_ConsultServices.GetCategoriesAsync();
+                return Ok(categories);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
     }
-
 }

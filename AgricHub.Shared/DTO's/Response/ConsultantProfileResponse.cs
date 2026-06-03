@@ -24,6 +24,7 @@ namespace AgricHub.Shared.DTO_s.Response
         public int? NoShowCount { get; set; }
         public string BankName { get; set; }
         public string BankCode { get; set; }
+        public bool IsVerified { get; set; }   // ← add this
         public string AccountNumber { get; set; }
         public string AccountName { get; set; }
         public bool HasBankDetails { get; set; }

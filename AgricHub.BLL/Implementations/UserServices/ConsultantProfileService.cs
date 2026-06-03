@@ -11,6 +11,7 @@ using System.Security.Claims;
 
 namespace AgricHub.BLL.Implementations.UserServices
 {
+
     public class ConsultantProfileService : IConsultantProfileService
     {
         private readonly IRepository<Consultant> _consultantRepo;
@@ -25,11 +26,11 @@ namespace AgricHub.BLL.Implementations.UserServices
             UserManager<ApplicationUser> userManager,
             IHttpContextAccessor httpContextAccessor)
         {
-            _unitOfWork = unitOfWork;
-            _paystackService = paystackService;
-            _userManager = userManager;
+            _unitOfWork          = unitOfWork;
+            _paystackService     = paystackService;
+            _userManager         = userManager;
             _httpContextAccessor = httpContextAccessor;
-            _consultantRepo = unitOfWork.GetRepository<Consultant>();
+            _consultantRepo      = unitOfWork.GetRepository<Consultant>();
         }
 
         private string GetUserId()
@@ -43,32 +44,31 @@ namespace AgricHub.BLL.Implementations.UserServices
         public async Task<ConsultantProfileResponse> GetMyProfileAsync()
         {
             var userId = GetUserId();
-
             var consultant = await _consultantRepo.GetSingleByAsync(c => c.UserId == userId)
                 ?? throw new KeyNotFoundException("Consultant not found.");
-
             var user = await _userManager.FindByIdAsync(userId);
 
             return new ConsultantProfileResponse
             {
-                UserId = consultant.UserId,
-                FirstName = consultant.FirstName,
-                LastName = consultant.LastName,
-                Email = consultant.Email,
-                PhoneNumber = consultant.PhoneNumber,
-                BusinessName = consultant.BusinessName,
-                Address = consultant.Address,
-                CountryId = consultant.CountryId,
-                StateId = consultant.StateId,
-                AvatarUrl = consultant.AvatarUrl,
+                UserId         = consultant.UserId,
+                FirstName      = consultant.FirstName,
+                LastName       = consultant.LastName,
+                Email          = consultant.Email,
+                PhoneNumber    = consultant.PhoneNumber,
+                BusinessName   = consultant.BusinessName,
+                Address        = consultant.Address,
+                CountryId      = consultant.CountryId,
+                StateId        = consultant.StateId,
+                AvatarUrl      = consultant.AvatarUrl,
                 EmailConfirmed = user?.EmailConfirmed ?? false,
-                NoShowCount = consultant.NoShowCount,
-                BankName = consultant.BankName,
-                BankCode = consultant.BankCode,
-                AccountNumber = consultant.AccountNumber,
-                AccountName = consultant.AccountName,
+                NoShowCount    = consultant.NoShowCount,
+                BankName       = consultant.BankName,
+                BankCode       = consultant.BankCode,
+                AccountNumber  = consultant.AccountNumber,
+                AccountName    = consultant.AccountName,
                 HasBankDetails = !string.IsNullOrEmpty(consultant.PaystackRecipientCode),
-                CreatedAt = consultant.CreatedAt
+                CreatedAt      = consultant.CreatedAt,
+                IsVerified     = consultant.IsVerified   // ← was missing
             };
         }
 
@@ -78,21 +78,20 @@ namespace AgricHub.BLL.Implementations.UserServices
             var consultant = await _consultantRepo.GetSingleByAsync(c => c.UserId == userId)
                 ?? throw new KeyNotFoundException("Consultant not found.");
 
-            consultant.FirstName = request.FirstName;
-            consultant.LastName = request.LastName;
+            consultant.FirstName   = request.FirstName;
+            consultant.LastName    = request.LastName;
             consultant.PhoneNumber = request.PhoneNumber;
             consultant.BusinessName = request.BusinessName;
-            consultant.Address = request.Address;
-            consultant.CountryId = request.CountryId;
-            consultant.StateId = request.StateId;
-
+            consultant.Address     = request.Address;
+            consultant.CountryId   = request.CountryId;
+            consultant.StateId     = request.StateId;
             _consultantRepo.Update(consultant);
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user != null)
             {
-                user.FirstName = request.FirstName;
-                user.LastName = request.LastName;
+                user.FirstName   = request.FirstName;
+                user.LastName    = request.LastName;
                 user.PhoneNumber = request.PhoneNumber;
                 await _userManager.UpdateAsync(user);
             }
@@ -108,22 +107,16 @@ namespace AgricHub.BLL.Implementations.UserServices
 
             try
             {
-                // 1. Verify bank account with Paystack
                 var accountDetails = await _paystackService.ResolveAccountNumberAsync(
-                    request.AccountNumber,
-                    request.BankCode);
-
+                    request.AccountNumber, request.BankCode);
 
                 var recipientCode = await _paystackService.CreateTransferRecipientAsync(
-    request.AccountNumber,
-    accountDetails.AccountName,  
-    request.BankCode);           
+                    request.AccountNumber, accountDetails.AccountName, request.BankCode);
 
-              
-                consultant.BankName = request.BankName;
-                consultant.BankCode = request.BankCode;
-                consultant.AccountNumber = request.AccountNumber;
-                consultant.AccountName = accountDetails.AccountName;
+                consultant.BankName             = request.BankName;
+                consultant.BankCode             = request.BankCode;
+                consultant.AccountNumber        = request.AccountNumber;
+                consultant.AccountName          = accountDetails.AccountName;
                 consultant.PaystackRecipientCode = recipientCode;
 
                 _consultantRepo.Update(consultant);
@@ -142,9 +135,7 @@ namespace AgricHub.BLL.Implementations.UserServices
                 ?? throw new KeyNotFoundException("User not found.");
 
             var result = await _userManager.ChangePasswordAsync(
-                user,
-                request.CurrentPassword,
-                request.NewPassword);
+                user, request.CurrentPassword, request.NewPassword);
 
             if (!result.Succeeded)
             {
@@ -154,14 +145,10 @@ namespace AgricHub.BLL.Implementations.UserServices
         }
 
         public async Task<List<BankInfo>> GetBanksAsync()
-        {
-            return await _paystackService.GetBanksAsync();
-        }
+            => await _paystackService.GetBanksAsync();
 
         public async Task<BankAccountDetails> VerifyBankAccountAsync(string accountNumber, string bankCode)
-        {
-            return await _paystackService.ResolveAccountNumberAsync(accountNumber, bankCode);
-        }
+            => await _paystackService.ResolveAccountNumberAsync(accountNumber, bankCode);
 
         public async Task<string> UploadAvatarAsync(IFormFile file)
         {
@@ -184,12 +171,9 @@ namespace AgricHub.BLL.Implementations.UserServices
             var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
             using (var stream = new FileStream(filePath, FileMode.Create))
-            {
                 await file.CopyToAsync(stream);
-            }
 
             var avatarUrl = $"/uploads/avatars/{uniqueFileName}";
-
             consultant.AvatarUrl = avatarUrl;
             _consultantRepo.Update(consultant);
             await _unitOfWork.SaveChangesAsync();

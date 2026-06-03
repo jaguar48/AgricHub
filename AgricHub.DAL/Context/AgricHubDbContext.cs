@@ -18,21 +18,18 @@ namespace AgricHub.DAL.Context
 
             // ============= CONSULTATION RELATIONSHIPS =============
 
-            // Consultation → Customer
             modelBuilder.Entity<Consultation>()
                 .HasOne(c => c.Customer)
                 .WithMany()
                 .HasForeignKey(c => c.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Consultation → Consultant
             modelBuilder.Entity<Consultation>()
                 .HasOne(c => c.Consultant)
                 .WithMany()
                 .HasForeignKey(c => c.ConsultantId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Consultation → Service (optional)
             modelBuilder.Entity<Consultation>()
                 .HasOne(c => c.Service)
                 .WithMany()
@@ -40,7 +37,6 @@ namespace AgricHub.DAL.Context
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Consultation → ServicePackage (optional)
             modelBuilder.Entity<Consultation>()
                 .HasOne(c => c.ServicePackage)
                 .WithMany()
@@ -50,29 +46,24 @@ namespace AgricHub.DAL.Context
 
             // ============= CHAT SESSION RELATIONSHIPS =============
 
-            // ChatSession → Customer
             modelBuilder.Entity<ChatSession>()
                 .HasOne(cs => cs.Customer)
                 .WithMany()
                 .HasForeignKey(cs => cs.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ChatSession → Consultant
             modelBuilder.Entity<ChatSession>()
                 .HasOne(cs => cs.Consultant)
                 .WithMany()
                 .HasForeignKey(cs => cs.ConsultantId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ChatSession → Service (optional)
             modelBuilder.Entity<ChatSession>()
                 .HasOne(cs => cs.Service)
                 .WithMany()
                 .HasForeignKey(cs => cs.ServiceId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
-
-            // ============= REVIEW RELATIONSHIPS =============
 
             // ============= REVIEW RELATIONSHIPS =============
 
@@ -98,12 +89,11 @@ namespace AgricHub.DAL.Context
                 .HasOne(r => r.Service)
                 .WithMany()
                 .HasForeignKey(r => r.ServiceId)
-                .IsRequired(false)  // ← ADD THIS LINE!
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // ============= WALLET RELATIONSHIPS =============
 
-            // Wallet → Customer (nullable)
             modelBuilder.Entity<Wallet>()
                 .HasOne(w => w.Customer)
                 .WithMany()
@@ -111,7 +101,6 @@ namespace AgricHub.DAL.Context
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Wallet → Consultant (nullable)
             modelBuilder.Entity<Wallet>()
                 .HasOne(w => w.Consultant)
                 .WithMany()
@@ -119,14 +108,12 @@ namespace AgricHub.DAL.Context
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Check constraint: Either CustomerId or ConsultantId must be set, but not both
             modelBuilder.Entity<Wallet>()
                 .HasCheckConstraint("CK_Wallet_CustomerOrConsultant",
                     "(CustomerId IS NOT NULL AND ConsultantId IS NULL) OR (CustomerId IS NULL AND ConsultantId IS NOT NULL)");
 
             // ============= WALLET TRANSACTION RELATIONSHIPS =============
 
-            // WalletTransaction → Customer (nullable)
             modelBuilder.Entity<WalletTransaction>()
                 .HasOne(wt => wt.Customer)
                 .WithMany(c => c.WalletTransactions)
@@ -134,7 +121,6 @@ namespace AgricHub.DAL.Context
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // WalletTransaction → Consultant (nullable)
             modelBuilder.Entity<WalletTransaction>()
                 .HasOne(wt => wt.Consultant)
                 .WithMany(c => c.WalletTransactions)
@@ -144,14 +130,12 @@ namespace AgricHub.DAL.Context
 
             // ============= PENDING TRANSACTION RELATIONSHIPS =============
 
-            // PendingTransaction → Customer
             modelBuilder.Entity<PendingTransaction>()
                 .HasOne(pt => pt.Customer)
                 .WithMany()
                 .HasForeignKey(pt => pt.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // PendingTransaction → Consultation
             modelBuilder.Entity<PendingTransaction>()
                 .HasOne(pt => pt.Consultation)
                 .WithMany()
@@ -160,7 +144,6 @@ namespace AgricHub.DAL.Context
 
             // ============= SERVICE PACKAGE RELATIONSHIPS =============
 
-            // ServicePackage → Service
             modelBuilder.Entity<ServicePackage>()
                 .HasOne(sp => sp.Service)
                 .WithMany(s => s.Packages)
@@ -169,14 +152,12 @@ namespace AgricHub.DAL.Context
 
             // ============= CUSTOM OFFER RELATIONSHIPS =============
 
-            // CustomOffer → ChatSession
             modelBuilder.Entity<CustomOffer>()
                 .HasOne(co => co.ChatSession)
                 .WithMany()
                 .HasForeignKey(co => co.ChatSessionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // CustomOffer → Service
             modelBuilder.Entity<CustomOffer>()
                 .HasOne(co => co.Service)
                 .WithMany()
@@ -185,14 +166,13 @@ namespace AgricHub.DAL.Context
 
             // ============= SERVICE RELATIONSHIPS =============
 
-            // Service → Business
+            // ← CHANGED: WithMany(b => b.Services) so Business.Services navigation works
             modelBuilder.Entity<Service>()
                 .HasOne(s => s.Business)
-                .WithMany()
+                .WithMany(b => b.Services)
                 .HasForeignKey(s => s.BusinessId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Service → Category
             modelBuilder.Entity<Service>()
                 .HasOne(s => s.Category)
                 .WithMany()
@@ -201,16 +181,14 @@ namespace AgricHub.DAL.Context
 
             // ============= BUSINESS RELATIONSHIPS =============
 
-            // Business → Consultant
             modelBuilder.Entity<Business>()
                 .HasOne(b => b.Consultant)
                 .WithMany()
                 .HasForeignKey(b => b.ConsultantId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ============= DECIMAL PRECISION CONFIGURATIONS =============
+            // ============= DECIMAL PRECISION =============
 
-            // Ensure proper decimal precision for financial fields
             modelBuilder.Entity<Wallet>()
                 .Property(w => w.Balance)
                 .HasColumnType("decimal(18,2)");
@@ -255,5 +233,6 @@ namespace AgricHub.DAL.Context
         public DbSet<Review> Reviews { get; set; }
         public DbSet<ChatSession> ChatSessions { get; set; }
         public DbSet<CustomOffer> CustomOffers { get; set; }
+        public DbSet<BusinessVerification> BusinessVerifications { get; set; }  // ← ADDED
     }
 }

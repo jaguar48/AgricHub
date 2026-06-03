@@ -113,15 +113,11 @@ namespace AgricHub.BLL.Implementations.UserServices
 
         public async Task<ServiceResponse<string>> ValidateUser(UserAuthenticationResponse response)
         {
-            /* _logger.LogInfo("Validates user and logs them in");*/
-
             _user = await _userManager.FindByNameAsync(response.UserName);
 
             var result = _user != null && await _userManager.CheckPasswordAsync(_user, response.Password);
             if (!result)
             {
-                /*_logger.LogWarn($"{nameof(ValidateUser)}: Authentication failed. Wrong username or password.");*/
-
                 return new ServiceResponse<string>
                 {
                     Success = false,
@@ -129,12 +125,13 @@ namespace AgricHub.BLL.Implementations.UserServices
                 };
             }
 
-            var role = (await _userManager.GetRolesAsync(_user))[0];
+            var roles = await _userManager.GetRolesAsync(_user);
+            var role = roles.FirstOrDefault() ?? "Customer"; // ← guard against empty roles
+
             return new ServiceResponse<string>
             {
                 Success = true,
                 Message = "Login successful.",
-
                 Role = role
             };
         }

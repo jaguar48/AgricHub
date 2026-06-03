@@ -252,7 +252,7 @@ namespace AgricHub.BLL.Implementations.PaystackService
             }
         }
 
-  
+        // ✅ NEW METHOD 2: Verify/resolve bank account
         public async Task<BankAccountDetails> ResolveAccountNumberAsync(string accountNumber, string bankCode)
         {
             try

@@ -36,14 +36,12 @@ namespace AgricHub.Presentation.Controllers.UserController
         public async Task<IActionResult> Authenticate([FromBody] UserAuthenticationResponse user)
         {
             var response = await _authentication.ValidateUser(user);
-
-
-
             if (!response.Success)
                 return BadRequest(response);
 
-            return Ok(new { Token = await _authentication.CreateToken(), response.Role });
+            var token = await _authentication.CreateToken();
 
+            return Ok(new { Token = token, Role = response.Role }); // ← explicit naming
         }
     }
 }

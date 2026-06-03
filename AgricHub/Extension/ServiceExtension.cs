@@ -1,5 +1,6 @@
 ﻿using AgricHub.BLL.Helpers;
 using AgricHub.BLL.Implementations;
+using AgricHub.BLL.Implementations.AdminService;
 using AgricHub.BLL.Implementations.AgrichubServices;
 using AgricHub.BLL.Implementations.BusinessServices;
 using AgricHub.BLL.Implementations.ChatServices;
@@ -8,7 +9,9 @@ using AgricHub.BLL.Implementations.ReviewServices;
 using AgricHub.BLL.Implementations.UserServices;
 using AgricHub.BLL.Implementations.UserServices.UserServices;
 using AgricHub.BLL.Implementations.WalletService;
+using AgricHub.BLL.Interfaces;
 using AgricHub.BLL.Interfaces.ChatServices;
+using AgricHub.BLL.Interfaces.IAdminService;
 using AgricHub.BLL.Interfaces.IAgrichub_Services;
 using AgricHub.BLL.Interfaces.IBusinessServices;
 using AgricHub.BLL.Interfaces.IChatServices;
@@ -20,13 +23,12 @@ using AgricHub.Contracts;
 using AgricHub.DAL;
 using AgricHub.DAL.Context;
 using AgricHub.DAL.Entities;
+using AgricHub.DAL.Entities.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using SendGrid.Helpers.Mail;
 using System.Text;
 
 namespace AgricHub.API.Extension
@@ -44,14 +46,13 @@ namespace AgricHub.API.Extension
 
         public static void ConfigureEmail(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<EmailConfiguration>(options => configuration.GetSection("EmailSettings").Bind(options));
+            services.Configure<EmailConfiguration>(options =>
+                configuration.GetSection("EmailSettings").Bind(options));
             services.AddScoped<EmailConfiguration>();
         }
 
         public static void ConfigureIISIntegration(this IServiceCollection services) =>
-            services.Configure<IISOptions>(options =>
-            {
-            });
+            services.Configure<IISOptions>(options => { });
 
         public static void ConfigureSqlContext(this IServiceCollection services, IConfiguration configuration) =>
             services.AddDbContext<AgricHubDbContext>(opts =>
@@ -59,14 +60,14 @@ namespace AgricHub.API.Extension
 
         public static void ConfigureIdentity(this IServiceCollection services)
         {
-            var builder = services.AddIdentity<ApplicationUser, IdentityRole>(o =>
+            services.AddIdentity<ApplicationUser, IdentityRole>(o =>
             {
-                o.Password.RequireDigit = true;
-                o.Password.RequireLowercase = false;
-                o.Password.RequireUppercase = false;
+                o.Password.RequireDigit           = true;
+                o.Password.RequireLowercase       = false;
+                o.Password.RequireUppercase       = false;
                 o.Password.RequireNonAlphanumeric = false;
-                o.Password.RequiredLength = 10;
-                o.User.RequireUniqueEmail = true;
+                o.Password.RequiredLength         = 10;
+                o.User.RequireUniqueEmail         = true;
             })
             .AddEntityFrameworkStores<AgricHubDbContext>()
             .AddDefaultTokenProviders();
@@ -80,26 +81,26 @@ namespace AgricHub.API.Extension
             services.AddAuthentication(opt =>
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
+                    ValidateIssuer           = true,
+                    ValidateAudience         = true,
+                    ValidateLifetime         = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings["validIssuer"],
-                    ValidAudience = jwtSettings["validAudience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(secretKey)
+                    ValidIssuer              = jwtSettings["validIssuer"],
+                    ValidAudience            = jwtSettings["validAudience"],
+                    IssuerSigningKey         = new SymmetricSecurityKey(secretKey)
                 };
             });
         }
 
         public static void ConfigureServices(this IServiceCollection services)
         {
-            // ✅ Auth & User Services (MISSING - causes the error!)
+            // Auth & User Services
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserServices, UserService>();
             services.AddScoped<ICustomerService, CustomerService>();
@@ -112,6 +113,7 @@ namespace AgricHub.API.Extension
             // Business Services
             services.AddScoped<IBusinessForService, BusinessForService>();
             services.AddScoped<IConsultationService, ConsultationService>();
+            services.AddScoped<IBusiness_ConsultServices, BusinessConsultService>();
 
             // Chat Services
             services.AddScoped<IChatService, ChatService>();
@@ -123,8 +125,14 @@ namespace AgricHub.API.Extension
             // Wallet Services
             services.AddScoped<IWalletService, WalletService>();
 
-            // Payment Services (HttpClient for Paystack)
+            // Payment Services
             services.AddHttpClient<IPaystackService, PaystackService>();
+
+            // Admin Services
+            services.AddScoped<IAdminService, AdminService>();
+
+            // Verification Services
+            services.AddScoped<IConsultantVerificationService, ConsultantVerificationService>();
 
             // Repository (Generic)
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
