@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AgricHub.DAL.Context
+namespace AgricHub.DAL.Context.Seeders
 {
     public static class AdminSeeder
     {

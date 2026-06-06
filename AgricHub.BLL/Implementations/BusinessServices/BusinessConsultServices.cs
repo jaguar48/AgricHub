@@ -84,6 +84,7 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
             business.ImagePath = dbPath;
             business.ConsultantId = consultant.Id;
             business.DateCreated = DateTime.UtcNow;
+            business.IsVerified   = true;   // ← add this
 
             await _businessRepo.AddAsync(business);
             await _unitOfWork.SaveChangesAsync();

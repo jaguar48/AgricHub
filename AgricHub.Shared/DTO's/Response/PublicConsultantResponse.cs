@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
+// AgricHub.Shared/DTO_s/Response/PublicConsultantResponse.cs
+
 namespace AgricHub.Shared.DTO_s.Response
 {
-
     public class PublicConsultantDto
     {
         public int Id { get; set; }
@@ -16,10 +18,15 @@ namespace AgricHub.Shared.DTO_s.Response
         public string? CountryId { get; set; }
         public string? StateId { get; set; }
         public string? AvatarUrl { get; set; }
+        public string? UserId { get; set; }
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? BusinessImagePath { get; set; }  // ← NEW
         public bool IsVerified { get; set; }
         public double AverageRating { get; set; }
         public int TotalReviews { get; set; }
         public int CompletedConsultations { get; set; }
+        public int ServiceCount { get; set; }
     }
 
     public class PublicConsultantDetailDto : PublicConsultantDto
@@ -42,6 +49,7 @@ namespace AgricHub.Shared.DTO_s.Response
         public string? Description { get; set; }
         public decimal Price { get; set; }
         public string? CategoryName { get; set; }
+        public string? ImagePath { get; set; }  // ← NEW
         public List<PublicPackageDto> Packages { get; set; } = new();
     }
 

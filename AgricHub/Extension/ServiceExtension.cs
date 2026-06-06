@@ -1,4 +1,6 @@
-﻿using AgricHub.BLL.Helpers;
+﻿// AgricHub.API/Extension/ServiceExtension.cs
+
+using AgricHub.BLL.Helpers;
 using AgricHub.BLL.Implementations;
 using AgricHub.BLL.Implementations.AdminService;
 using AgricHub.BLL.Implementations.AgrichubServices;
@@ -40,8 +42,8 @@ namespace AgricHub.API.Extension
             {
                 options.AddPolicy("CorsPolicy", builder =>
                     builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader());
+                           .AllowAnyMethod()
+                           .AllowAnyHeader());
             });
 
         public static void ConfigureEmail(this IServiceCollection services, IConfiguration configuration)
@@ -98,43 +100,58 @@ namespace AgricHub.API.Extension
             });
         }
 
-        public static void ConfigureServices(this IServiceCollection services)
+        public static void ConfigureServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Auth & User Services
+            // ── Auth & User ────────────────────────────────────────────────────
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserServices, UserService>();
             services.AddScoped<ICustomerService, CustomerService>();
             services.AddScoped<IConsultantService, ConsultantService>();
 
-            // Profile Services
+            // ── Profile ────────────────────────────────────────────────────────
             services.AddScoped<ICustomerProfileService, CustomerProfileService>();
             services.AddScoped<IConsultantProfileService, ConsultantProfileService>();
 
-            // Business Services
+            // ── Business & Services ────────────────────────────────────────────
             services.AddScoped<IBusinessForService, BusinessForService>();
             services.AddScoped<IConsultationService, ConsultationService>();
             services.AddScoped<IBusiness_ConsultServices, BusinessConsultService>();
 
-            // Chat Services
+            // ── Chat ───────────────────────────────────────────────────────────
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<ISendbirdService, SendbirdService>();
 
-            // Review Services
+            // ── Reviews ────────────────────────────────────────────────────────
             services.AddScoped<IReviewService, ReviewService>();
 
-            // Wallet Services
+            // ── Wallet ─────────────────────────────────────────────────────────
             services.AddScoped<IWalletService, WalletService>();
 
-            // Payment Services
+            // ── Payments ───────────────────────────────────────────────────────
             services.AddHttpClient<IPaystackService, PaystackService>();
 
-            // Admin Services
+            // ── Admin ──────────────────────────────────────────────────────────
             services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IAdminFinancialsService, AdminFinancialsService>();
 
-            // Verification Services
+            // ── Verification ───────────────────────────────────────────────────
             services.AddScoped<IConsultantVerificationService, ConsultantVerificationService>();
 
-            // Repository (Generic)
+            // ── Email (SendGrid primary → SMTP fallback) ───────────────────────
+            services.AddScoped<IEmailService, EmailService>();
+
+            // ── Storage (Cloudinary if configured → local fallback) ────────────
+            var cloudName = configuration["Cloudinary:CloudName"];
+            if (!string.IsNullOrEmpty(cloudName) && cloudName != "your-cloud-name")
+                services.AddScoped<IStorageService, CloudinaryStorageService>();
+            else
+                services.AddScoped<IStorageService, LocalStorageService>();
+
+            // ── Platform Settings (cached key-value config) ────────────────────
+            services.AddMemoryCache();
+            services.AddScoped<IPlatformSettingsService, PlatformSettingsService>();
+
+            // ── Generic Repository ─────────────────────────────────────────────
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         }
     }

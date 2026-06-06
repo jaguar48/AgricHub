@@ -1,25 +1,27 @@
-﻿using AgricHub.BLL.Helpers;
+﻿// AgricHub.BLL/Implementations/UserServices/UserServices/ConsultantService.cs
+
+using AgricHub.BLL.Helpers;
 using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.Contracts;
 using AgricHub.DAL.Entities;
 using AgricHub.DAL.Entities.Models;
 using AgricHub.Shared.DTO_s.Request;
 using AgricHub.Shared.DTO_s.Response;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace AgricHub.BLL.Implementations.UserServices.UserServices
 {
-
     public sealed class ConsultantService : IConsultantService
     {
         private readonly IRepository<Consultant> _consultantRepo;
         private readonly IRepository<Wallet> _walletRepo;
         private readonly IRepository<Review> _reviewRepo;
         private readonly IRepository<Consultation> _consultationRepo;
+        private readonly IRepository<Business> _businessRepo;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserServices _userServices;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -31,20 +33,20 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
             UserManager<ApplicationUser> userManager,
             IUserServices userServices)
         {
-            _unitOfWork        = unitOfWork;
-            _userManager       = userManager;
-            _authService       = authService;
-            _userServices      = userServices;
-            _consultantRepo    = _unitOfWork.GetRepository<Consultant>();
-            _walletRepo        = _unitOfWork.GetRepository<Wallet>();
-            _reviewRepo        = _unitOfWork.GetRepository<Review>();
-            _consultationRepo  = _unitOfWork.GetRepository<Consultation>();
+            _unitOfWork       = unitOfWork;
+            _userManager      = userManager;
+            _authService      = authService;
+            _userServices     = userServices;
+            _consultantRepo   = _unitOfWork.GetRepository<Consultant>();
+            _walletRepo       = _unitOfWork.GetRepository<Wallet>();
+            _reviewRepo       = _unitOfWork.GetRepository<Review>();
+            _consultationRepo = _unitOfWork.GetRepository<Consultation>();
+            _businessRepo     = _unitOfWork.GetRepository<Business>();
         }
 
         public async Task<string> RegisterConsultant(ConsultantRegistrationRequest request)
         {
             await using var transaction = await _unitOfWork.BeginTransactionAsync();
-
             try
             {
                 var user = await _userServices.RegisterUser(new UserForRegistrationRequest
@@ -88,16 +90,9 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-
                 var existingUser = await _userManager.FindByEmailAsync(request.Email);
-                if (existingUser != null)
-                    await _userManager.DeleteAsync(existingUser);
-
-                return JsonConvert.SerializeObject(new
-                {
-                    success = false,
-                    message = $"Registration failed: {ex.Message}"
-                });
+                if (existingUser != null) await _userManager.DeleteAsync(existingUser);
+                return JsonConvert.SerializeObject(new { success = false, message = $"Registration failed: {ex.Message}" });
             }
         }
 
@@ -121,13 +116,24 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
                 consultants = consultants.Where(c => c.CountryId == countryId);
 
             var ids = consultants.Select(c => c.Id).ToList();
+
             var reviews = await _reviewRepo.GetByAsync(r => ids.Contains(r.ConsultantId));
             var reviewMap = reviews
                 .GroupBy(r => r.ConsultantId)
-                .ToDictionary(
-                    g => g.Key,
-                    g => (Count: g.Count(), Avg: g.Average(r => (double)r.Rating))
-                );
+                .ToDictionary(g => g.Key, g => (Count: g.Count(), Avg: g.Average(r => (double)r.Rating)));
+
+            // Load business images and service counts
+            var businesses = await _businessRepo.GetAllAsync(b => ids.Contains(b.ConsultantId));
+            var businessImgMap = businesses
+                .GroupBy(b => b.ConsultantId)
+                .ToDictionary(g => g.Key, g => g.FirstOrDefault()?.ImagePath);
+
+            var svcRepo = _unitOfWork.GetRepository<Service>();
+            var services = await svcRepo.GetAllAsync(s => businesses.Select(b => b.Id).Contains(s.BusinessId));
+            var svcCountMap = services.GroupBy(s => {
+                var biz = businesses.FirstOrDefault(b => b.Id == s.BusinessId);
+                return biz?.ConsultantId ?? 0;
+            }).ToDictionary(g => g.Key, g => g.Count());
 
             return consultants.Select(c =>
             {
@@ -142,6 +148,8 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
                     StateId                = c.StateId,
                     AvatarUrl              = c.AvatarUrl,
                     IsVerified             = c.IsVerified,
+                    BusinessImagePath      = businessImgMap.TryGetValue(c.Id, out var bImg) ? bImg : null,
+                    ServiceCount           = svcCountMap.TryGetValue(c.Id, out var sc) ? sc : 0,
                     AverageRating          = Math.Round(rv.Avg, 1),
                     TotalReviews           = rv.Count,
                     CompletedConsultations = c.Consultations?.Count(x => x.Status == "Completed") ?? 0
@@ -151,17 +159,21 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
 
         public async Task<PublicConsultantDetailDto> GetConsultantByIdAsync(int id)
         {
+            // Load consultant (no Businesses nav property on Consultant entity)
             var c = await _consultantRepo.GetSingleByAsync(
                 predicate: c => c.Id == id,
-                include: q => q
-                    .Include(c => c.Businesses)
-                        .ThenInclude(b => b.Services)
-                            .ThenInclude(s => s.Packages)
-                    .Include(c => c.Businesses)
-                        .ThenInclude(b => b.Services)
-                            .ThenInclude(s => s.Category)
-                    .Include(c => c.Consultations)
+                include: q => q.Include(c => c.Consultations)
             ) ?? throw new KeyNotFoundException($"Consultant {id} not found.");
+
+            // Load businesses and their services separately
+            var businesses = await _businessRepo.GetAllAsync(
+                b => b.ConsultantId == id,
+                include: q => q
+                    .Include(b => b.Services)
+                        .ThenInclude(s => s.Packages)
+                    .Include(b => b.Services)
+                        .ThenInclude(s => s.Category)
+            );
 
             var reviews = await _reviewRepo.GetByAsync(r => r.ConsultantId == id);
             var avgRating = reviews.Any() ? Math.Round(reviews.Average(r => (double)r.Rating), 1) : 0.0;
@@ -176,11 +188,14 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
                 CountryId              = c.CountryId,
                 StateId                = c.StateId,
                 AvatarUrl              = c.AvatarUrl,
+                UserId                 = c.UserId,
+                Email                  = c.Email,
+                PhoneNumber            = c.PhoneNumber,
                 IsVerified             = c.IsVerified,
                 AverageRating          = avgRating,
                 TotalReviews           = reviews.Count(),
                 CompletedConsultations = completed,
-                Businesses = c.Businesses?.Select(b => new PublicBusinessDto
+                Businesses = businesses.Select(b => new PublicBusinessDto
                 {
                     Id        = b.Id,
                     Name      = b.BusinessName,
@@ -192,6 +207,7 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
                         Description  = s.Description,
                         Price        = s.Price,
                         CategoryName = s.Category?.Name,
+                        ImagePath    = s.ImagePath,
                         Packages     = s.Packages?.Select(p => new PublicPackageDto
                         {
                             Id                  = p.Id,
@@ -202,7 +218,7 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
                             IncludesOnsiteVisit = p.IncludesOnsiteVisit
                         }).ToList() ?? new()
                     }).ToList() ?? new()
-                }).ToList() ?? new()
+                }).ToList()
             };
         }
 
@@ -210,9 +226,9 @@ namespace AgricHub.BLL.Implementations.UserServices.UserServices
         {
             var wallet = new Wallet
             {
-                WalletNo    = WalletIdGenerator.GenerateWalletId(),
-                Balance     = 0,
-                IsActive    = true,
+                WalletNo     = WalletIdGenerator.GenerateWalletId(),
+                Balance      = 0,
+                IsActive     = true,
                 ConsultantId = consultant.Id,
             };
             await _walletRepo.AddAsync(wallet);

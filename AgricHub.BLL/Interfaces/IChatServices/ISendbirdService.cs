@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace AgricHub.BLL.Interfaces.ChatServices
 {
-
     public interface ISendbirdService
     {
         Task<string> CreateSendbirdUserAsync();
@@ -16,6 +15,10 @@ namespace AgricHub.BLL.Interfaces.ChatServices
         Task SendMessageAsync(string channelUrl, string senderUserId, string message, bool isSystemMessage = false, object? data = null);
         Task<string> EnsureSendbirdUserAsync(string userId, string nickname);
         Task SendAdminMessageAsync(string channelUrl, string message, object? data = null);
-    }
 
+        // ── Notification channel ──────────────────────────────────────────────
+        Task<string> CreateNotificationChannelAsync(string userId, string nickname);
+        Task SendNotificationAsync(string userId, string message, string type, object? data = null);
+    }
 }
+

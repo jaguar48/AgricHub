@@ -1,13 +1,16 @@
-﻿using AgricHub.API.Extension;
+﻿// AgricHub.API/Program.cs
+
+using AgricHub.API.Extension;
 using AgricHub.Contracts;
 using AgricHub.DAL;
 using AgricHub.DAL.Context;
+using AgricHub.DAL.Context.Seeders;
+using AgricHub.DAL.Seeders;
 using AgricHub.Presentation.Filters;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 
@@ -28,7 +31,6 @@ builder.Services.ConfigureSqlContext(builder.Configuration);
 builder.Services.AddScoped<ValidationFilterAttribute>();
 builder.Services.AddCors(o => o.AddPolicy("Angular",
     p => p.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod()));
-
 builder.Services.AddControllers()
     .AddApplicationPart(typeof(AgricHub.Presentation.AssemblyReference).Assembly);
 
@@ -38,23 +40,19 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "AgricHub", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
-        Name        = "Authorization",
-        Type        = SecuritySchemeType.ApiKey,
-        Scheme      = "Bearer",
+        Name         = "Authorization",
+        Type         = SecuritySchemeType.ApiKey,
+        Scheme       = "Bearer",
         BearerFormat = "JWT",
-        In          = ParameterLocation.Header,
-        Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\""
+        In           = ParameterLocation.Header,
+        Description  = "JWT Authorization header using the Bearer scheme.\r\n\r\nEnter 'Bearer' [space] and then your token.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\""
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id   = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             Array.Empty<string>()
         }
@@ -62,31 +60,40 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork<AgricHubDbContext>>();
-builder.Services.ConfigureServices();
+
+// ← Pass configuration so Cloudinary / storage can be registered conditionally
+builder.Services.ConfigureServices(builder.Configuration);
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAutoMapper(Assembly.Load("AgricHub.BLL"));
 
 var app = builder.Build();
 
-// Seeds roles (Admin, Consultant, Customer) + admin account
-// Replaces the old DataSeeder.SeedRoles block — does the same thing plus creates admin user
+// ── Seeders ────────────────────────────────────────────────────────────────────
 await AdminSeeder.SeedAsync(app.Services);
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AgricHubDbContext>();
+    await PlatformSettingsSeeder.SeedAsync(db);
+}
+
+// ── Middleware ─────────────────────────────────────────────────────────────────
 app.ConfigureExceptionHandler();
 app.UseCors("Angular");
 app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions()
+app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
-        Path.Combine(Directory.GetCurrentDirectory(), @"Resources")),
-    RequestPath = new PathString("/Resources")
+        Path.Combine(Directory.GetCurrentDirectory(), "Resources")),
+    RequestPath  = new PathString("/Resources")
 });
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.All
 });
 app.UseAuthentication();
-/*app.UseHttpsRedirection();*/
+/* app.UseHttpsRedirection(); */
 app.UseAuthorization();
 app.MapControllers();
 app.UseSwagger();

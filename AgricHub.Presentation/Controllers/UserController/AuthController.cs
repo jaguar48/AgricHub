@@ -1,16 +1,13 @@
-﻿using AgricHub.BLL.Interfaces.IUserServices;
+﻿// AgricHub.Presentation/Controllers/UserController/AuthController.cs
+
+using AgricHub.BLL.Interfaces.IUserServices;
 using AgricHub.DAL.Entities;
-using AgricHub.Presentation.Filters;
 using AgricHub.Shared.DTO_s.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AgricHub.Presentation.Controllers.UserController
 {
@@ -24,13 +21,11 @@ namespace AgricHub.Presentation.Controllers.UserController
         public AuthController(IAuthService authentication, UserManager<ApplicationUser> userManager)
         {
             _authentication = authentication;
-            _userManager = userManager;
+            _userManager    = userManager;
         }
 
-
         [HttpPost("login")]
-
-        [SwaggerOperation(Summary = "Authenticate user and create token", Description = "Authenticate user and create token.")]
+        [SwaggerOperation(Summary = "Authenticate user and create token")]
         [SwaggerResponse((int)HttpStatusCode.OK, "Token created successfully.")]
         [SwaggerResponse((int)HttpStatusCode.BadRequest, "Invalid user credentials.")]
         public async Task<IActionResult> Authenticate([FromBody] UserAuthenticationResponse user)
@@ -38,10 +33,28 @@ namespace AgricHub.Presentation.Controllers.UserController
             var response = await _authentication.ValidateUser(user);
             if (!response.Success)
                 return BadRequest(response);
-
             var token = await _authentication.CreateToken();
+            return Ok(new { Token = token, Role = response.Role });
+        }
 
-            return Ok(new { Token = token, Role = response.Role }); // ← explicit naming
+        [HttpPost("google")]
+        [AllowAnonymous]
+        [SwaggerOperation(Summary = "Sign in or register with Google")]
+        [SwaggerResponse((int)HttpStatusCode.OK, "Google authentication successful.")]
+        [SwaggerResponse((int)HttpStatusCode.BadRequest, "Invalid Google credential.")]
+        public async Task<IActionResult> GoogleAuth([FromBody] GoogleAuthRequest request)
+        {
+            try
+            {
+                var response = await _authentication.GoogleAuth(request.Credential, request.Role);
+                return Ok(response);
+            }
+            catch (InvalidOperationException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
         }
     }
+
+    public record GoogleAuthRequest(string Credential, string? Role = null);
 }

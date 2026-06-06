@@ -234,5 +234,7 @@ namespace AgricHub.DAL.Context
         public DbSet<ChatSession> ChatSessions { get; set; }
         public DbSet<CustomOffer> CustomOffers { get; set; }
         public DbSet<BusinessVerification> BusinessVerifications { get; set; }  // ← ADDED
+                                                                                // In AgricHubDbContext.cs — add this DbSet:
+        public DbSet<PlatformSetting> PlatformSettings { get; set; }
     }
 }

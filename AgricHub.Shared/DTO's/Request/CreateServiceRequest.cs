@@ -1,14 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace AgricHub.Shared.DTO_s.Request
 {
@@ -19,14 +14,14 @@ namespace AgricHub.Shared.DTO_s.Request
         public string ServiceName { get; set; }
         public string Description { get; set; }
         public decimal Price { get; set; }
+
         public IFormFile File { get; set; }
+        public List<IFormFile>? MediaFiles { get; set; }  // ← additional media
 
-        // Swagger will treat this as a simple string field
-        public string ? PackagesJson { get; set; }
+        public string? PackagesJson { get; set; }
 
-        // Default duration for when no packages are provided (backward compatibility)
         [Range(1, 1440, ErrorMessage = "Duration must be between 1 and 1440 minutes (24 hours)")]
-        public int DefaultDurationMinutes { get; set; } = 60; // 1 hour default
+        public int DefaultDurationMinutes { get; set; } = 60;
 
         [NotMapped]
         [JsonIgnore]
@@ -37,7 +32,7 @@ namespace AgricHub.Shared.DTO_s.Request
 
     public class ServicePackageRequest
     {
-        public int Id { get; set; } // 0 for new packages, >0 for existing
+        public int Id { get; set; }
 
         [Required]
         [MaxLength(100)]

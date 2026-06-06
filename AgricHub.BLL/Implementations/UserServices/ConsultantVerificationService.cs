@@ -11,7 +11,6 @@ using System.Security.Claims;
 
 namespace AgricHub.BLL.Implementations
 {
-  
     public class ConsultantVerificationService : IConsultantVerificationService
     {
         private readonly IRepository<BusinessVerification> _verifRepo;
@@ -56,7 +55,7 @@ namespace AgricHub.BLL.Implementations
             {
                 status = latest.Status,
                 submittedAt = latest.SubmittedAt.ToString("O"),
-                rejectionNotes = latest.RejectionNotes
+                reviewNotes = latest.RejectionNotes   // ← matches Angular interface
             };
         }
 
@@ -75,7 +74,6 @@ namespace AgricHub.BLL.Implementations
             if (pending is not null)
                 throw new InvalidOperationException("You already have a pending verification application.");
 
-            // Save files and record their public-accessible paths
             var uploadDir = Path.Combine(
                 _env.WebRootPath ?? "wwwroot", "verification-docs", consultant.Id.ToString());
             Directory.CreateDirectory(uploadDir);
@@ -106,7 +104,6 @@ namespace AgricHub.BLL.Implementations
             await _unitOfWork.SaveChangesAsync();
         }
 
-        // Returns the web-accessible relative URL for the file
         private static async Task<string> SaveFile(
             IFormFile file, string dir, string label, int consultantId)
         {
@@ -115,8 +112,6 @@ namespace AgricHub.BLL.Implementations
             var path = Path.Combine(dir, fileName);
             await using var stream = File.Create(path);
             await file.CopyToAsync(stream);
-
-            // Return URL path for the admin to access via browser
             return $"/verification-docs/{consultantId}/{fileName}";
         }
     }

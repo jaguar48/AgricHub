@@ -11,12 +11,12 @@ namespace AgricHub.BLL.Interfaces.IUserServices
     public interface IAuthService
     {
         Task<ServiceResponse<string>> ValidateUser(UserAuthenticationResponse response);
-        
         Task<string> CreateToken();
-
-        public Task<ApplicationUser> VerifyUser(string email, string verificationToken);
-        public Task<bool> SendVerificationEmail(string email, string verificationToken);
-        public Task<bool> ResetPassword(string email, string token, string newPassword);
-        public Task<bool> SendPasswordResetEmail(string email, string resetToken);
+        Task<ApplicationUser> VerifyUser(string email, string verificationToken);
+        Task<bool> SendVerificationEmail(string email, string verificationToken);
+        Task<bool> ResetPassword(string email, string token, string newPassword);
+        Task<bool> SendPasswordResetEmail(string email, string resetToken);
+       
+        Task<AuthenticationResponse> GoogleAuth(string credential, string? role = null);
     }
 }
