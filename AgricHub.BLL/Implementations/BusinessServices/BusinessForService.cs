@@ -296,7 +296,7 @@ namespace AgricHub.BLL.Implementations.AgrichubServices
                     await _storageService.DeleteAsync(path);
             }
 
-            // Block deletion if any consultations reference this service's packages
+            
             var consultationRepo = _unitOfWork.GetRepository<Consultation>();
             var hasConsultations = await consultationRepo.AnyAsync(
                 c => c.ServiceId == serviceId &&
